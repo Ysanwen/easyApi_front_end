@@ -1,31 +1,36 @@
-<nav class="ez-menu-area column is-2">
-  <aside class="menu">
-    {#each groupList as group}
-      <ul class="menu-list">
-        <li>
-          <a href="#{group.groupName}">{group.groupName}</a>
-          
-          {#if group.subItems.length > 0}
-            <ul>
-              {#each group.subItems as subItem}
-                <li><a href="#{subItem.title}">{subItem.description}</a></li>
-              {/each}
-            </ul>
-          {/if}
-        </li>
-      </ul>
-    {/each}
-  </aside>
-</nav>
-
+{#if openSideBar}
+  <nav class="ez-menu-area column is-2" >
+    <aside class="menu">
+      {#each groupList as group}
+        <ul class="menu-list">
+          <li>
+            <a href="#{group.groupName}">{group.groupName}</a>
+            
+            {#if group.subItems.length > 0}
+              <ul>
+                {#each group.subItems as subItem}
+                  <li><a href="#{subItem.title}">{subItem.description}</a></li>
+                {/each}
+              </ul>
+            {/if}
+          </li>
+        </ul>
+      {/each}
+    </aside>
+  </nav>
+{/if}
 <script>
-  let groupList = [{
+  
+  export let openSideBar = true;
+  export let newGroup = [];
+  let defaultList = [{
     groupName: 'default', 
     subItems: [
       {title: 'getDoc', description: '获取xxxx'},
       {title: 'postDoc', description: '提交xxxx'},
     ]
   }];
+  $: groupList = (groupList || defaultList).concat(newGroup);
   
 </script>
 

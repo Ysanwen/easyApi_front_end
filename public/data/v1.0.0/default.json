@@ -1,0 +1,22 @@
+{
+  "noGroup": {
+    "Api": {
+      "method": "get",
+      "path": "/api/test/{id}"
+    },
+    "Name": {
+      "key": "noGroup",
+      "description": "关于接口 的简单描述"
+    }
+  },
+  "noGroup2": {
+    "Api": {
+      "method": "post",
+      "path": "/api/test/{id}"
+    },
+    "Name": {
+      "key": "noGroup2",
+      "description": "关于接口 的简单描述"
+    }
+  }
+}

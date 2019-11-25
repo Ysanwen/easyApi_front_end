@@ -1,0 +1,15 @@
+{
+  "test": {
+    "Api": {
+      "method": "get",
+      "path": "/api/test/{id}"
+    },
+    "Name": {
+      "key": "test",
+      "description": "关于接口 的简单描述"
+    },
+    "Group": {
+      "key": "newGroup"
+    }
+  }
+}

@@ -1,3 +1,6 @@
+<svelte:head>
+	<title>{docTitle}</title>
+</svelte:head>
 <header class="ez-header columns is-gapless">
 	<div class="column is-four-fifths">
 		<span on:click={openCloseSideBar} class="menu-button">
@@ -7,7 +10,7 @@
 			<span class="icon icon-item"><i class="fas fa-align-justify" data-fa-transform="rotate-90"></i></span>
 			{/if}
 		</span>
-		API接口文档
+		{docTitle}
 	</div>
 	<div class="column version-selector">
 		<label for="version">Version:</label>
@@ -19,19 +22,45 @@
 	</div>
 </header>
 <div class="ez-container columns is-gapless">
-	<LeftMenu />
-	<RightContainer />
+	<LeftMenu openSideBar={openSideBar} newGroup={newGroup}/>
+	<RightContainer on:addGroup={addGroup}/>
 </div>
 
 <script>
+	import { onMount } from 'svelte';
+	import axios from 'axios';
 	import LeftMenu from './LeftMenu.svelte';
 	import RightContainer from './RightContainer.svelte';
-
+	
+	let docTitle = 'API Doc';
 	let openSideBar = true;
+	let newGroup = [];
 
 	function openCloseSideBar () {
 		openSideBar = !openSideBar
 	}
+
+	function addGroup (event) {
+		newGroup = [{
+			groupName: 'group1', 
+			subItems: [
+				{title: 'getOne', description: '获取xxxx'},
+				{title: 'postTwo', description: '提交xxxx'},
+			]
+		}];
+	}
+
+	onMount(() => {
+		axios.get('/data/common.json').then((response) => {
+			if (response.status === 200) {
+				let data = response.data || {};
+				console.log(data);
+				docTitle = data.docTitle
+			} else {
+				console.log(response)
+			}
+		})
+	})
 
 </script>
 

@@ -1,16 +1,25 @@
 <div class="ez-right-container column">
   <div class="main-content">
-    <button class="button" on:click={addGroup}>add a group</button>
+    <!-- <button class="button" on:click={addGroup}>add a group</button> -->
   </div>
 </div>
 <script>
-  import { createEventDispatcher } from 'svelte';
+  import { createEventDispatcher, onMount } from 'svelte';
+  export let selectedVersion = '';
+  export let storeData = {};
+
+  let versionData;
 
   const dispatch = createEventDispatcher();
   
   function addGroup () {
     dispatch('addGroup', {});
   }
+  $: {
+    versionData = selectedVersion ? storeData[selectedVersion] : {};
+    console.log(versionData);
+  }
+
 </script>
 
 

@@ -1,22 +1,22 @@
 {
-  "noGroup": {
+  "default1": {
     "Api": {
       "method": "get",
       "path": "/api/test/{id}"
     },
     "Name": {
-      "key": "noGroup",
-      "description": "关于接口 的简单描述"
+      "key": "default1",
+      "description": "default get请求1"
     }
   },
-  "noGroup2": {
+  "default2": {
     "Api": {
       "method": "post",
       "path": "/api/test/{id}"
     },
     "Name": {
-      "key": "noGroup2",
-      "description": "关于接口 的简单描述"
+      "key": "default2",
+      "description": "default post请求1"
     }
   }
 }

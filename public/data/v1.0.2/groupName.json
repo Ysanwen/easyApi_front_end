@@ -1,11 +1,11 @@
 {
-  "apiName": {
+  "testV1.0.2": {
     "Api": {
       "method": "get",
       "path": "/api/test/{id}"
     },
     "Name": {
-      "key": "apiName",
+      "key": "testV1.0.2",
       "description": "关于接口 的简单描述"
     },
     "Group": {

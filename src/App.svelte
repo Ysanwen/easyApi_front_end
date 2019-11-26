@@ -14,17 +14,21 @@
 	</div>
 	<div class="column version-selector">
 		<label for="version">Version:</label>
-		<select id="version" class="seclect-width">
-			<option>v1.0.0</option>
-			<option>v1.0.1</option>
-			<option>v1.0.2</option>
+		<select id="version" class="seclect-width" bind:value={selectedVersion} on:change={doSelectVersion}>
+			{#each versionList as version}
+				<option value={version}>{version}</option>
+			{/each}
 		</select>
 	</div>
 </header>
-<div class="ez-container columns is-gapless">
-	<LeftMenu openSideBar={openSideBar} newGroup={newGroup}/>
-	<RightContainer on:addGroup={addGroup}/>
-</div>
+{#if loadDataComplete}
+	<div class="ez-container columns is-gapless">
+		<LeftMenu openSideBar={openSideBar} groupList={groupList}/>
+		<RightContainer on:addGroup={addGroup} selectedVersion={selectedVersion} storeData={storeData}/>
+	</div>
+{:else}
+	<div class="loading-area has-text-primary">数据加载中	<span class="icon is-large"><i class="fas fa-spinner fa-pulse"></i></span></div>
+{/if}
 
 <script>
 	import { onMount } from 'svelte';
@@ -34,14 +38,18 @@
 	
 	let docTitle = 'API Doc';
 	let openSideBar = true;
-	let newGroup = [];
+	let groupList = [];
+	let versionList = [];
+	let selectedVersion = '';
+	let storeData = {};
+	let loadDataComplete = false;
 
 	function openCloseSideBar () {
 		openSideBar = !openSideBar
 	}
 
 	function addGroup (event) {
-		newGroup = [{
+		groupList = [{
 			groupName: 'group1', 
 			subItems: [
 				{title: 'getOne', description: '获取xxxx'},
@@ -50,17 +58,80 @@
 		}];
 	}
 
+	function doSelectVersion (e) {
+		initShowItem()
+	};
+
 	onMount(() => {
 		axios.get('/data/common.json').then((response) => {
 			if (response.status === 200) {
 				let data = response.data || {};
-				console.log(data);
-				docTitle = data.docTitle
+				storeData = data;
+				docTitle = storeData.docTitle;
+				versionList = storeData.versionList;
+				selectedVersion = versionList[0];
+				getVersionData()
 			} else {
 				console.log(response)
 			}
 		})
 	})
+
+	let requestNum = 0;
+	function getVersionData () {
+		for (let v of versionList) {
+			let url = `/data/${v}/groupInfo.json`;
+			storeData[v] = {};
+			requestNum += 1;
+			axios.get(url).then((response) => {
+				if (response.status === 200) {
+					let data = response.data || {};
+					let groupList = data.group || [];
+					getGroupData(v,groupList);
+				} else {
+					console.log(response)
+				}
+			}).finally(() => requestNum -= 1)
+		}
+	}
+
+	function getGroupData (version, groupList) {
+		for (let group of groupList) {
+			let url = `/data/${version}/${group}.json`;
+			storeData[version][group] = storeData[version][group] || {}
+			requestNum += 1;
+			axios.get(url).then((response) => {
+				if (response.status === 200) {
+					storeData[version][group] = response.data || {}
+				} else {
+					console.log(response)
+				}
+			}).finally(() => {
+				requestNum -= 1;
+				if (requestNum === 0) {
+					loadDataComplete = true;
+					initShowItem();
+				}
+			})
+		}
+	}
+
+	function initShowItem () {
+		let groupObject = storeData[selectedVersion] || {};
+		let groups = [];
+		for (let group in groupObject) {
+			groups.push({
+				groupName: group, 
+				subItems: Object.keys(groupObject[group]).map((key) => {
+					return {
+						title: key,
+						description: groupObject[group][key].Name ? groupObject[group][key].Name.description : ''
+					}
+				})
+			})
+		}
+		groupList = groups;
+	}
 
 </script>
 
@@ -95,6 +166,9 @@
 	}
 	.seclect-width {
 		min-width: 50%;
+	}
+	.loading-area {
+		text-align: center;
 	}
 	.ez-container {
 		position: absolute;

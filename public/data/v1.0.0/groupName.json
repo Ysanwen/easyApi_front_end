@@ -1,12 +1,12 @@
 {
-  "apiName": {
+  "getTest1": {
     "Api": {
       "method": "get",
       "path": "/api/test/{id}"
     },
     "Name": {
-      "key": "apiName",
-      "description": "关于接口 的简单描述"
+      "key": "getTest1",
+      "description": "测试1的描述"
     },
     "Group": {
       "key": "groupName"

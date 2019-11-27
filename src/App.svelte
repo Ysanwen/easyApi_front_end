@@ -1,8 +1,8 @@
 <svelte:head>
 	<title>{docTitle}</title>
 </svelte:head>
-<header class="ez-header columns is-gapless">
-	<div class="column is-four-fifths">
+<header class="ez-header level">
+	<div class="level-left is-four-fifths">
 		<span on:click={openCloseSideBar} class="menu-button">
 			{#if openSideBar}
 				<span class="icon icon-item"><i class="fas fa-align-justify"></i></span>
@@ -12,7 +12,7 @@
 		</span>
 		{docTitle}
 	</div>
-	<div class="column version-selector">
+	<div class="level-right version-selector">
 		<label for="version">Version:</label>
 		<select id="version" class="seclect-width" bind:value={selectedVersion} on:change={doSelectVersion}>
 			{#each versionList as version}
@@ -144,6 +144,7 @@
 		font-size: 18px;
 		color: #fff;
 		padding: 0px 16px;
+		margin: 0px;
 	}
 	.menu-button {
 		margin-right: 8px;
@@ -165,7 +166,7 @@
 		margin-left: 8px;
 	}
 	.seclect-width {
-		min-width: 50%;
+		min-width: 120px;
 	}
 	.loading-area {
 		text-align: center;

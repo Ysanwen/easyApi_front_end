@@ -8,7 +8,7 @@
             {#if group.subItems.length > 0}
               <ul>
                 {#each group.subItems as subItem}
-                  <li><a href="#{subItem.title}" class={activityItem === subItem.title ? "is-activity" : "not-activity"} data-click-group={group.groupName} data-click-name={subItem.title}>{subItem.title} - {subItem.description}</a></li>
+                  <li><a href="#{group.groupName}-{subItem.title}" class={activityItem === subItem.title ? "is-activity" : "not-activity"} data-click-group={group.groupName} data-click-name={subItem.title}>{subItem.title} - {subItem.description}</a></li>
                 {/each}
               </ul>
             {/if}

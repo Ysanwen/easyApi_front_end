@@ -1,7 +1,7 @@
 {
   "getTest1": {
     "Api": {
-      "method": "get",
+      "method": "put",
       "path": "/api/test/{id}"
     },
     "Name": {
@@ -19,7 +19,7 @@
     },
     "Deprecated": {
       "description": "弃用的相关说明 \r\n这里是弃用说明的第一行\r\n然后再加上一行",
-      "replaceWith": "groupName#apiname"
+      "replaceWith": "default#default1"
     },
     "HeaderParam": [
       {
@@ -45,13 +45,6 @@
         "key": "currentPage",
         "description": "当前页数",
         "valueType": "number"
-      }
-    ],
-    "BodyParam": [
-      {
-        "key": "userId",
-        "description": "post请求体里面的参数， 只有put和post有效",
-        "valueType": "string"
       }
     ],
     "ContentType": {

@@ -7,16 +7,50 @@
     "Name": {
       "key": "default1",
       "description": "default get请求1"
-    }
+    },
+    "Description": {
+      "description": "这里是关于接口的 详情说明\r\n详细说明换一行\r\n详情说明的第二行"
+    },
+    "HeaderParam": [
+      {
+        "key": "x-token",
+        "description": "相关的参数解释",
+        "valueType": "string"
+      }
+    ],
+    "UrlParam": [
+      {
+        "key": "id",
+        "description": "对应的测试id",
+        "valueType": "string"
+      }
+    ]
   },
   "default2": {
     "Api": {
       "method": "post",
-      "path": "/api/test/{id}"
+      "path": "/api/test/post"
     },
     "Name": {
       "key": "default2",
       "description": "default post请求1"
-    }
+    },
+    "Description": {
+      "description": "这里是关于接口的 详情说明\r\n详细说明换一行\r\n详情说明的第二行"
+    },
+    "HeaderParam": [
+      {
+        "key": "x-token",
+        "description": "相关的参数解释",
+        "valueType": "string"
+      }
+    ],
+    "BodyParam": [
+      {
+        "key": "userId",
+        "description": "post请求体里面的参数， 只有put和post有效",
+        "valueType": "string"
+      }
+    ]
   }
 }

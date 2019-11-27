@@ -1,7 +1,7 @@
 {
   "test2": {
     "Api": {
-      "method": "get",
+      "method": "delete",
       "path": "/api/test/{id}"
     },
     "Name": {
@@ -10,6 +10,23 @@
     },
     "Group": {
       "key": "newGroup"
-    }
+    },
+    "Description": {
+      "description": "这里是关于接口的 详情说明\r\n详细说明换一行\r\n详情说明的第二行"
+    },
+    "HeaderParam": [
+      {
+        "key": "x-token",
+        "description": "相关的参数解释",
+        "valueType": "string"
+      }
+    ],
+    "UrlParam": [
+      {
+        "key": "id",
+        "description": "对应的测试id",
+        "valueType": "string"
+      }
+    ]
   }
 }

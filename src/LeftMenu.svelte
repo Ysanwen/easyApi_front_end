@@ -4,11 +4,11 @@
       {#each groupList as group}
         <ul class="menu-list">
           <li>
-            <a href="#{group.groupName}" class={activityItem === group.groupName ? "is-activity" : "not-activity"} data-click-group={group.groupName} data-click-name={group.groupName}>{group.groupName}</a>
+            <a href="#{group.groupName}" class={$activityItem === group.groupName ? "is-activity" : "not-activity"} data-click-group={group.groupName} data-click-name={group.groupName}>{group.groupName}</a>
             {#if group.subItems.length > 0}
               <ul>
                 {#each group.subItems as subItem}
-                  <li><a href="#{group.groupName}-{subItem.title}" class={activityItem === subItem.title ? "is-activity" : "not-activity"} data-click-group={group.groupName} data-click-name={subItem.title}>{subItem.title} - {subItem.description}</a></li>
+                  <li><a href="#{group.groupName}-{subItem.title}" class={$activityItem === subItem.title ? "is-activity" : "not-activity"} data-click-group={group.groupName} data-click-name={subItem.title}>{subItem.title} - {subItem.description}</a></li>
                 {/each}
               </ul>
             {/if}
@@ -19,20 +19,17 @@
   </nav>
 {/if}
 <script>
-  
+  import { activityGroup, activityItem } from './store.js';
   export let openSideBar = true;
   export let groupList = [];
-
-  let activityGroup = '';
-  let activityItem = '';
 
   function clickItem (e) {
     if (e.target && e.target.dataset) {
       let clickGroup =  e.target.dataset.clickGroup;
       let clickName =  e.target.dataset.clickName;
       if (clickGroup && clickName) {
-        activityGroup = clickGroup;
-        activityItem = clickName;
+        activityGroup.set(clickGroup);
+        activityItem.set(clickName);
       }
     }
   }

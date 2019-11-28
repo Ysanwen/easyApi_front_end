@@ -14,10 +14,6 @@
     "Description": {
       "description": "这里是关于接口的 详情说明\r\n详细说明换一行\r\n详情说明的第二行"
     },
-    "Deprecated": {
-      "description": "弃用的相关说明 \r\n这里是弃用说明的第一行\r\n然后再加上一行",
-      "replaceWith": "groupName#apiname"
-    },
     "HeaderParam": [
       {
         "key": "x-token",

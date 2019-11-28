@@ -8,9 +8,9 @@
       {/if}
     </div>
     <div class="level-right">
-      <select id="version" class="seclect-width" bind:value={selectedVersion} on:change={doSelectVersion}>
-        {#each versionList as version}
-          <option value={version}>{version}</option>
+      <select class="seclect-width" bind:value={selectedVersion} on:change={doSelectVersion}>
+        {#each $versionList as version, index}
+          <option value={version} disabled={disableVersionList.indexOf(version) >= 0}>{version}</option>
         {/each}
       </select>
     </div>
@@ -44,10 +44,15 @@
 
 
 <script>
+  import { onMount, createEventDispatcher } from 'svelte';
+  import { versionList, globalSelectedVersion, storeData } from '../store.js';
+  
   export let apiData;
-  export let versionList = [];
-  export let selectedVersion = '';
   export let group;
+
+  const dispatch = createEventDispatcher();
+  let selectedVersion = '';
+  let disableVersionList = [];
 
   let apiName;
   let apiNameDescription;
@@ -67,8 +72,21 @@
     path = apiData.Api ? apiData.Api.path : '';
   }
 
+  onMount (() => {
+    selectedVersion = $globalSelectedVersion;
+    let disable = [];
+    for (let v of $versionList) {
+      if (!$storeData[v] || !$storeData[v][group] || !$storeData[v][group][apiName]) {
+        disable.push(v);
+      }
+    }
+    disableVersionList = disable;
+  })
+
   function doSelectVersion () {
-    console.log(selectedVersion);
+    if ($storeData[selectedVersion] && $storeData[selectedVersion][group] && $storeData[selectedVersion][group][apiName]) {
+      dispatch('changeApiVersion', $storeData[selectedVersion][group][apiName]);
+    }
   }
 </script>
 

@@ -14,8 +14,8 @@
 	</div>
 	<div class="level-right version-selector">
 		<label for="version">Version:</label>
-		<select id="version" class="seclect-width" bind:value={selectedVersion} on:change={doSelectVersion}>
-			{#each versionList as version}
+		<select id="version" class="seclect-width" bind:value={$globalSelectedVersion} on:change={doSelectVersion}>
+			{#each $versionList as version}
 				<option value={version}>{version}</option>
 			{/each}
 		</select>
@@ -24,64 +24,83 @@
 {#if loadDataComplete}
 	<div class="ez-container columns is-gapless">
 		<LeftMenu openSideBar={openSideBar} groupList={groupList}/>
-		<RightContainer on:addGroup={addGroup} selectedVersion={selectedVersion} storeData={storeData}/>
+		<RightContainer/>
 	</div>
 {:else}
 	<div class="loading-area has-text-primary">数据加载中	<span class="icon is-large"><i class="fas fa-spinner fa-pulse"></i></span></div>
 {/if}
 
 <script>
-	import { onMount } from 'svelte';
+	import { onMount, tick, onDestroy } from 'svelte';
 	import axios from 'axios';
+	import { globalSelectedVersion, storeData, versionList, activityGroup, activityItem } from './store.js';
 	import LeftMenu from './LeftMenu.svelte';
 	import RightContainer from './RightContainer.svelte';
 	
 	let docTitle = 'API Doc';
 	let openSideBar = true;
 	let groupList = [];
-	let versionList = [];
-	let selectedVersion = '';
-	let storeData = {};
 	let loadDataComplete = false;
+	let hash = '';
 
 	function openCloseSideBar () {
 		openSideBar = !openSideBar
 	}
 
-	function addGroup (event) {
-		groupList = [{
-			groupName: 'group1', 
-			subItems: [
-				{title: 'getOne', description: '获取xxxx'},
-				{title: 'postTwo', description: '提交xxxx'},
-			]
-		}];
-	}
-
 	function doSelectVersion (e) {
+		hash = '#';
 		initShowItem()
 	};
 
 	onMount(() => {
+		hash = window.location.hash;
+		window.location.hash = '#';
 		axios.get('/data/common.json').then((response) => {
 			if (response.status === 200) {
 				let data = response.data || {};
-				storeData = data;
-				docTitle = storeData.docTitle;
-				versionList = storeData.versionList;
-				selectedVersion = versionList[0];
+				storeData.set(data);
+				docTitle = data.docTitle;
+				versionList.set(data.versionList);
+				globalSelectedVersion.set(data.versionList[0]);
 				getVersionData()
 			} else {
 				console.log(response)
 			}
 		})
+		// listen has change
+		window.addEventListener('hashchange', handlerHashChange);
+	})
+
+	function handlerHashChange () {
+		let gethas = window.location.hash.replace(/#/g, '');
+		if (gethas) {
+			let index = gethas.indexOf('-');
+			if (index > 0) {
+				activityGroup.set(gethas.substr(0,index));
+				activityItem.set(gethas.substr(index + 1));
+			} else {
+				activityGroup.set(gethas);
+				activityItem.set(gethas);
+			}
+		} else {
+			activityGroup.set('');
+			activityItem.set('');
+		}
+	}
+
+	onDestroy(() => {
+		// remove listen
+		window.removeEventListener('hashchange', handlerHashChange);
 	})
 
 	let requestNum = 0;
 	function getVersionData () {
-		for (let v of versionList) {
+		for (let v of $versionList) {
 			let url = `/data/${v}/groupInfo.json`;
-			storeData[v] = {};
+			storeData.update((data) => {
+				data[v] = {};
+				return data;
+			})
 			requestNum += 1;
 			axios.get(url).then((response) => {
 				if (response.status === 200) {
@@ -98,11 +117,17 @@
 	function getGroupData (version, groupList) {
 		for (let group of groupList) {
 			let url = `/data/${version}/${group}.json`;
-			storeData[version][group] = storeData[version][group] || {}
+			storeData.update((data) => {
+				data[version][group] = data[version][group] || {};
+				return data;
+			})
 			requestNum += 1;
 			axios.get(url).then((response) => {
 				if (response.status === 200) {
-					storeData[version][group] = response.data || {}
+					storeData.update((data) => {
+						data[version][group] = response.data || {};
+						return data;
+					})
 				} else {
 					console.log(response)
 				}
@@ -116,8 +141,8 @@
 		}
 	}
 
-	function initShowItem () {
-		let groupObject = storeData[selectedVersion] || {};
+	async function initShowItem () {
+		let groupObject = $storeData[$globalSelectedVersion] || {};
 		let groups = [];
 		for (let group in groupObject) {
 			groups.push({
@@ -131,6 +156,8 @@
 			})
 		}
 		groupList = groups;
+		await tick();
+		hash && (window.location.hash = hash);
 	}
 
 </script>

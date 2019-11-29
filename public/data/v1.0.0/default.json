@@ -1,12 +1,12 @@
 {
-  "default1": {
+  "getCourseList": {
     "Api": {
       "method": "get",
       "path": "/api/test/{id}"
     },
     "Name": {
-      "key": "default1",
-      "description": "default get请求1"
+      "key": "getCourseList",
+      "description": "获取全部课程列表"
     },
     "Description": {
       "description": "这里是关于接口的 详情说明\r\n详细说明换一行\r\n详情说明的第二行"
@@ -14,7 +14,12 @@
     "HeaderParam": [
       {
         "key": "x-token",
-        "description": "相关的参数解释",
+        "description": "请求的token",
+        "valueType": "string"
+      },
+      {
+        "key": "auth",
+        "description": "验证内容",
         "valueType": "string"
       }
     ],
@@ -24,16 +29,34 @@
         "description": "对应的测试id",
         "valueType": "string"
       }
-    ]
+    ],
+    "QueryParam": [
+      {
+        "key": "pageSize",
+        "description": "每页的条数",
+        "valueType": "number"
+      },
+      {
+        "key": "currentPage",
+        "description": "当前页数",
+        "valueType": "number"
+      }
+    ],
+    "SuccessResponse": {
+      "description": "application/json 200 成功返回的一些内容说明\r\n{\r\n  status: \"success\",\r\n  data: {}\r\n}"
+    },
+    "ErrorResponse": {
+      "description": "application/json 400 失败返回的一些内容说明\r\n{\r\n  status: \"fail\",\r\n  message: \"error message\"\r\n}"
+    }
   },
-  "default2": {
+  "postCourse": {
     "Api": {
       "method": "post",
       "path": "/api/test/post"
     },
     "Name": {
-      "key": "default2",
-      "description": "default post请求1"
+      "key": "postCourse",
+      "description": "提交选课"
     },
     "Description": {
       "description": "这里是关于接口的 详情说明\r\n详细说明换一行\r\n详情说明的第二行"
@@ -50,7 +73,23 @@
         "key": "userId",
         "description": "post请求体里面的参数， 只有put和post有效",
         "valueType": "string"
+      },
+      {
+        "key": "userAge",
+        "description": "post请求体里面的参数， 只有put和post有效",
+        "valueType": "number"
+      },
+      {
+        "key": "userRole",
+        "description": "post请求体里面的参数， 只有put和post有效",
+        "valueType": "array"
       }
-    ]
+    ],
+    "SuccessResponse": {
+      "description": "application/json 200 成功返回的一些内容说明\r\n{\r\n  status: \"success\",\r\n  data: {}\r\n}"
+    },
+    "ErrorResponse": {
+      "description": "application/json 400 失败返回的一些内容说明\r\n{\r\n  status: \"fail\",\r\n  message: \"error message\"\r\n}"
+    }
   }
 }

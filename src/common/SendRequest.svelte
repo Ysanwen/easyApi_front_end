@@ -84,10 +84,18 @@
   {/if}
 </div>
 
+<!-- response result -->
+{#if responseData && responseType}
+  <ShowResponseResult responseType={responseType} responseContent={responseData}/>
+{/if}
+
 <script>
-  import { onMount, tick, onDestroy } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
+  import { storeData } from '../store.js';
   import FormDataTable from './FormDataTable.svelte';
   import FormUrlEncoded from './FormUrlEncoded.svelte';
+  import ShowResponseResult from './ShowResponseResult.svelte';
+  import axios from 'axios';
 
   export let apiData;
 
@@ -108,6 +116,9 @@
   let formDataArray = [{key: '', value: '', valueType: 'text'}];
 
   let errorMessage = '';
+
+  let responseData;
+  let responseType;
 
   $: if (apiData) {
     method = apiData.Api.method;
@@ -279,7 +290,33 @@
   }
 
   function sendAxiosRequest() {
-    // todo
+    let request = {};
+    let url = apiData.Api.path;
+    let method = apiData.Api.method;
+    // set header
+    for (let key in requestHeader) {
+      request.headers = request.headers || {};
+      request.headers[key] = requestHeader[key];
+    }
+    // set urlParams
+    for (let key in requestUrl) {
+      url = url.replace(`{${key}}`, requestUrl[key])
+    }
+    request.url = url;
+    if (url.indexOf('http') < 0 && url.indexOf('//') < 0) {
+      request.baseURL = $storeData.baseUrl;
+    }
+    // set query params
+    for (let key in requestQuery) {
+      request.params = request.params || {};
+      request.params[key] = requestQuery[key];
+    }
+    // console.log(request)
+    axios(request).then((response) => {
+      responseData =  response.data;
+      responseType = response.headers && response.headers['content-type'] ? response.headers['content-type'] : 'application/json';
+    })
+
   }
 </script>
 

@@ -1,20 +1,20 @@
-{#if SuccessResponse || ErrorResponse}
+{#if (SuccessResponse && SuccessResponse.length > 0) || (ErrorResponse && ErrorResponse.length > 0)}
   <div class="tabs is-boxed">
     <ul>
-      {#if SuccessResponse}
-        <li class:is-active={activeItem === 'success'} on:click={showSuccess}>
-          <a href="javascript:void(0);">SuccessResponse Sample</a>
+      {#each SuccessResponse as response, index}
+        <li class:is-active={activeItem === 'success' && activeIndex === index} on:click={() => showSuccess(index)}>
+          <a href="javascript:void(0);">SuccessResponse {response.responseCode}</a>
         </li>
-      {/if}
-      {#if ErrorResponse}
-        <li class:is-active={activeItem === 'error'} on:click={showError}>
-          <a href="javascript:void(0);">ErrorResponse Sample</a>
+      {/each}
+      {#each ErrorResponse as response, index}
+        <li class:is-active={activeItem === 'error' && activeIndex === index} on:click={() => showError(index)}>
+          <a href="javascript:void(0);">ErrorResponse {response.responseCode}</a>
         </li>
-      {/if}  
+      {/each}  
     </ul>
   </div>
   <pre class="ez-response-sample">
-    {@html activeItem === 'success' ? SuccessResponse.description : ErrorResponse.description}
+    {@html activeItem === 'success' ? SuccessResponse[activeIndex].description : ErrorResponse[activeIndex].description}
   </pre>
 {/if}
 
@@ -24,23 +24,26 @@
   let SuccessResponse;
   let ErrorResponse;
   let activeItem = '';
+  let activeIndex = 0;
 
   $: if(apiData) {
-    SuccessResponse = apiData.SuccessResponse;
-    ErrorResponse = apiData.ErrorResponse;
-    if (SuccessResponse) {
+    SuccessResponse = apiData.SuccessResponse || [];
+    ErrorResponse = apiData.ErrorResponse || [];
+    if (SuccessResponse && SuccessResponse.length > 0) {
       activeItem = 'success';
-    } else if (ErrorResponse) {
+    } else if (ErrorResponse && ErrorResponse.length > 0) {
       activeItem = 'error';
     }
   }
 
-  function showSuccess () {
+  function showSuccess (index) {
     activeItem !== 'success' && (activeItem = 'success');
+    index !== activeIndex && (activeIndex = index);
   }
 
-  function showError () {
+  function showError (index) {
     activeItem !== 'error' && (activeItem = 'error');
+    index !== activeIndex && (activeIndex = index);
   }
 </script>
 

@@ -4,7 +4,9 @@
     <h6 class="title is-6">Headers请求参数</h6>
     {#each headerParams as header (header.key)}
       <div class="field has-addons">
-        <p class="control"><span class="button ez-key">{header.key}</span></p>
+        <p class="control">
+          <span class="button ez-key">{#if header.isRequired !== false}<span class="ez-is-required">*</span>{/if}{header.key}</span>
+        </p>
         <p class="control is-expanded">
           <input class="input" type="text" bind:value={requestHeader[header.key]}>
         </p>
@@ -19,7 +21,9 @@
     <h6 class="title is-6">url请求参数</h6>
     {#each urlParams as url (url.key)}
       <div class="field has-addons">
-        <p class="control"><span class="button ez-key">{url.key}</span></p>
+        <p class="control">
+          <span class="button ez-key">{#if url.isRequired !== false}<span class="ez-is-required">*</span>{/if}{url.key}</span>
+        </p>
         <p class="control is-expanded">
           <input class="input" type="text" bind:value={requestUrl[url.key]}>
         </p>
@@ -34,7 +38,9 @@
     <h6 class="title is-6">query查询请求参数</h6>
     {#each queryParams as query (query.key)}
       <div class="field has-addons">
-        <p class="control"><span class="button ez-key">{query.key}</span></p>
+        <p class="control">
+          <span class="button ez-key">{#if query.isRequired !== false}<span class="ez-is-required">*</span>{/if}{query.key}</span>
+        </p>
         <p class="control is-expanded">
           <input class="input" type="text" bind:value={requestQuery[query.key]}>
         </p>
@@ -49,19 +55,40 @@
     <h6 class="title is-6">body参数</h6>
     <!-- json type -->
     {#if contentType === 'application/json'}
-      <div class="ez-json-editor">
+      <div class="ez-request-body">
         <div bind:this={jsonEditorEl}></div>
       </div>
+    {/if}
+    <!-- form-data type -->
+    {#if contentType === 'multipart/form-data'}
+      <FormDataTable bind:paramsArray={formDataArray} />
+    {/if}
+    <!-- urlencoded type -->
+    {#if contentType === 'application/x-www-form-urlencoded'}
+      <FormUrlEncoded bind:paramsArray={formDataArray} />
+    {/if}
+    <!-- text type -->
+    {#if contentType === 'text/plain'}
+      <textarea class="textarea" rows="3" bind:value={requestTextBody}></textarea>
     {/if}
   </div> 
 {/if}
 <!-- send request -->
 <div class="ez-request">
   <button class="button is-link" on:click={sendRequest}>Try Send Request</button>
+  {#if errorMessage}
+    <span class="tag is-warning is-large is-light ez-error-info">
+      {errorMessage}
+      <button class="delete is-small" on:click={closeErrorMessage}></button>
+    </span>
+  {/if}
 </div>
 
 <script>
   import { onMount, tick, onDestroy } from 'svelte';
+  import FormDataTable from './FormDataTable.svelte';
+  import FormUrlEncoded from './FormUrlEncoded.svelte';
+
   export let apiData;
 
   let method;
@@ -70,12 +97,17 @@
   let queryParams;
   let bodyParams;
   let contentType = 'application/json'; // ContentType
+  let editor;
+  let jsonEditorEl;
+
   let requestHeader = {};
   let requestUrl = {};
   let requestQuery = {};
   let requestBody = {};
-  let editor;
-  let jsonEditorEl;
+  let requestTextBody = '';
+  let formDataArray = [{key: '', value: '', valueType: 'text'}];
+
+  let errorMessage = '';
 
   $: if (apiData) {
     method = apiData.Api.method;
@@ -84,10 +116,11 @@
     queryParams = apiData.QueryParam || [];
     bodyParams = apiData.BodyParam || [];
     apiData.ContentType && (contentType = apiData.ContentType);
+    // contentType = 'text/plain'
   }
 
   onMount (() => {
-    if (method === 'post' && contentType === 'application/json') {
+    if ((method === 'post' || method === 'put') && contentType === 'application/json') {
       initJsonEditor();
     }
   })
@@ -143,7 +176,7 @@
             break;
         }
       }
-      obj.userRole=[{a:1},'b','c'];
+      // obj.userRole=[{a:1},'b','c'];
       let objStr = JSON.stringify(obj);
       objStr = formatJson(objStr);
       return objStr
@@ -184,20 +217,69 @@
     return str;
   }
 
+  function closeErrorMessage () {
+    errorMessage = '';
+  }
+
+  function checkRequestData (data, dataConfigArray) {
+    for (let item of dataConfigArray) {
+      if (item.isRequired !== false) {
+        if (data[item.key] === null || data[item.key] === undefined || data[item.key] === '') {
+          return {isFail: true, message: `key: ${item.key} is required`};
+          break;
+        }
+      }
+    }
+    return {isFail: false, message: ''}
+  }
+
+  function checkRequestBody () {
+    if (contentType === 'application/json') {
+      let hasError = false;
+      editor.eachLine((line) => {
+        if (line.gutterMarkers) {
+          hasError = true;
+        }
+      });
+      if (hasError) {
+        console.log('has error value');
+      } else {
+        let value = editor.getValue();
+        console.log(JSON.parse(value));
+      }
+    } else if (contentType === 'multipart/form-data' || contentType === 'application/x-www-form-urlencoded') {
+      console.log('form-data type')
+    } else if (contentType === 'text/plain') {
+      console.log('text/plain')
+    }
+  }
+
   function sendRequest () {
-    console.log(requestHeader, requestUrl, requestQuery)
-    // let hasError = false;
-    // editor.eachLine((line) => {
-    //   if (line.gutterMarkers) {
-    //     hasError = true;
-    //   }
-    // });
-    // if (hasError) {
-    //   console.log('has error value');
-    // } else {
-    //   let value = editor.getValue();
-    //   console.log(JSON.parse(value));
-    // }
+    let checkRequestHeader = checkRequestData(requestHeader, headerParams);
+    if (checkRequestHeader.isFail) {
+      errorMessage = 'request header ' + checkRequestHeader.message;
+      return false;
+    }
+    let checkRequestUrl = checkRequestData(requestUrl, urlParams);
+    if (checkRequestUrl.isFail) {
+      errorMessage = 'request url ' + checkRequestUrl.message;
+      return false;
+    }
+    let checkRequestQuery = checkRequestData(requestQuery, queryParams);
+    if (checkRequestQuery.isFail) {
+      errorMessage = 'request query ' + checkRequestQuery.message;
+      return false;
+    }
+    // console.log(requestHeader, requestUrl, requestQuery)
+    // console.log(requestTextBody)
+    if (method === 'post' || method === 'put') {
+      checkRequestBody();
+    }
+    sendAxiosRequest();
+  }
+
+  function sendAxiosRequest() {
+    // todo
   }
 </script>
 
@@ -209,10 +291,17 @@
   .ez-key {
     min-width: 160px;
   }
+  .ez-is-required {
+    color:hsl(348, 100%, 61%);
+    margin-right: 6px;
+  }
   .ez-type {
     min-width: 120px;
   }
-  .ez-json-editor {
+  .ez-request-body {
     border: 1px solid #ccc;
+  }
+  .ez-error-info {
+    margin-left: 8px;
   }
 </style>

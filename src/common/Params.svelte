@@ -12,7 +12,7 @@
         {#if i === 0}
           <td rowspan={HeaderParam.length}>HeaderParam</td>
         {/if}  
-        <td>{header.key}</td>
+        <td>{header.key}  <span class={header.isRequired === false ? 'tag is-info is-light' : 'tag is-danger is-light'}>{header.isRequired === false ? '可选' : '必须'}</span></td>
         <td>{header.valueType}</td>
         <td>{header.description}</td>
       </tr>
@@ -22,7 +22,7 @@
         {#if i === 0}
           <td rowspan={UrlParam.length}>UrlParam</td>
         {/if}  
-        <td>{url.key}</td>
+        <td>{url.key}  <span class={url.isRequired === false ? 'tag is-info is-light' : 'tag is-danger is-light'}>{url.isRequired === false ? '可选' : '必须'}</span></td>
         <td>{url.valueType}</td>
         <td>{url.description}</td>
       </tr>
@@ -32,7 +32,7 @@
         {#if i === 0}
           <td rowspan={QueryParam.length}>QueryParam</td>
         {/if}  
-        <td>{query.key}</td>
+        <td>{query.key}  <span class={query.isRequired === false ? 'tag is-info is-light' : 'tag is-danger is-light'}>{query.isRequired === false ? '可选' : '必须'}</span></td>
         <td>{query.valueType}</td>
         <td>{query.description}</td>
       </tr>
@@ -42,7 +42,7 @@
         {#if i === 0}
           <td rowspan={BodyParam.length}>BodyParam</td>
         {/if}  
-        <td>{body.key}</td>
+        <td>{body.key}  <span class={body.isRequired === false ? 'tag is-info is-light' : 'tag is-danger is-light'}>{body.isRequired === false ? '可选' : '必须'}</span></td>
         <td>{body.valueType}</td>
         <td>{body.description}</td>
       </tr>

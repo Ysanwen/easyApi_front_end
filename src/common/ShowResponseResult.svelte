@@ -41,7 +41,7 @@
       styleActiveLine: true,
       matchBrackets: true,
       smartIndent: true,
-      // readOnly: true,
+      readOnly: true,
       tabSize: 2,
       theme: 'blackboard',
       tabindex: 2,

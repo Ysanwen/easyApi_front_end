@@ -52,7 +52,7 @@
 <!-- body part -->
 {#if (method === 'post' || method === 'put') && bodyParams && bodyParams.length > 0}
  <div class="ez-request-param">
-    <h6 class="title is-6">body参数</h6>
+    <h6 class="title is-6">body参数 contentType: {contentType}</h6>
     <!-- json type -->
     {#if contentType === 'application/json'}
       <div class="ez-request-body">
@@ -127,7 +127,8 @@
     queryParams = apiData.QueryParam || [];
     bodyParams = apiData.BodyParam || [];
     apiData.ContentType && (contentType = apiData.ContentType);
-    // contentType = 'text/plain'
+    // modify contentType
+    contentType = 'application/json';
   }
 
   onMount (() => {
@@ -253,16 +254,78 @@
         }
       });
       if (hasError) {
-        console.log('has error value');
+        errorMessage = '存在非法json格式';
+        return false;
       } else {
         let value = editor.getValue();
-        console.log(JSON.parse(value));
+        let jsonValue = JSON.parse(value);
+        if (checkInputJson(jsonValue)) {
+          requestBody = jsonValue;
+          return true;
+        } else {
+          return false;
+        }
       }
     } else if (contentType === 'multipart/form-data' || contentType === 'application/x-www-form-urlencoded') {
-      console.log('form-data type')
+      return checkFormData()
     } else if (contentType === 'text/plain') {
-      console.log('text/plain')
+      return true;
     }
+  }
+
+  function trimFormData() {
+    return formDataArray.map((item) => {
+      if (item.valueType === 'text') {
+        item.key = item.key.replace(/^\s+|\s+$/g,'');
+        item.value = item.value.replace(/^\s+|\s+$/g,'');
+      }
+      return item;
+    })
+  }
+
+  function checkFormData () {
+    let params = {};
+    let keys = [];
+    let result = true;
+    for (let item of bodyParams) {
+      params[item.key] = item;
+      item.isRequired !== false && keys.push(item.key);
+    }
+    let formData = trimFormData();
+    for (let dataItem of formData) {
+      let key = dataItem.key;
+      let index = keys.indexOf(key);
+      if (params[key]) {
+        if (params[key].isRequired && dataItem.value === '') {
+          result = false;
+          errorMessage = `body params key: "${key}" is required`
+          break;
+        }
+      }
+      index >= 0 && (keys.splice(index, 1));
+    }
+    if (result && keys.length > 0) {
+      errorMessage = `body params key: "${keys[0]}" is required`;
+      result = false;
+    }
+    return result;
+  }
+
+  function checkInputJson (jsonValue) {
+    let result = true;
+    for (let item of bodyParams) {
+      let key = item.key;
+      let valueType = item.valueType;
+      let isRequired = item.isRequired;
+      if (isRequired === false && (jsonValue[key] === undefined || jsonValue[key] === null)) {
+        result = true;
+      } else if (Object.prototype.toString.call(jsonValue[key]).toLocaleLowerCase().indexOf(valueType) < 0) {
+        result = false;
+        errorMessage = `body params key: "${key}" with error type`;
+        break;
+      }
+    }
+    return result;
   }
 
   function sendRequest () {
@@ -281,18 +344,50 @@
       errorMessage = 'request query ' + checkRequestQuery.message;
       return false;
     }
-    // console.log(requestHeader, requestUrl, requestQuery)
-    // console.log(requestTextBody)
     if (method === 'post' || method === 'put') {
-      checkRequestBody();
+      let checkBody = checkRequestBody();
+      if (checkBody) {
+        let bodyData = generateBodyData();
+        sendAxiosRequest(bodyData);
+      } else {
+        return false;
+      }
+    } else {
+      sendAxiosRequest();
     }
-    sendAxiosRequest();
+    errorMessage = '';
   }
 
-  function sendAxiosRequest() {
+  function generateBodyData () {
+    if (contentType === 'application/json') {
+      return requestBody;
+    } else if (contentType === 'multipart/form-data') {
+      let bodyData = new FormData();
+      let formData = trimFormData();
+      for (let item of formData) {
+        bodyData.append(item.key, item.value);
+      }
+      return bodyData
+    } else if (contentType === 'application/x-www-form-urlencoded') {
+      let bodyDataArray = [];
+      let formData = trimFormData();
+      for (let item of formData) {
+        let encodedStr = encodeURIComponent(item.key) + '=' + encodeURIComponent(item.value);
+        bodyDataArray.push(encodedStr);
+      }
+      return bodyDataArray.join('&');
+    } else if (contentType === 'text/plain') {
+      return requestTextBody;
+    } else {
+      return null;
+    }
+  }
+
+  function sendAxiosRequest(bodyData) {
     let request = {};
     let url = apiData.Api.path;
     let method = apiData.Api.method;
+    request.method = method;
     // set header
     for (let key in requestHeader) {
       request.headers = request.headers || {};
@@ -311,7 +406,12 @@
       request.params = request.params || {};
       request.params[key] = requestQuery[key];
     }
-    // console.log(request)
+    // if has a request body
+    if (bodyData) {
+      request.headers = request.headers || {};
+      request.headers['content-type'] = contentType;
+      request.data = bodyData;
+    }
     axios(request).then((response) => {
       responseData =  response.data;
       responseType = response.headers && response.headers['content-type'] ? response.headers['content-type'] : 'application/json';

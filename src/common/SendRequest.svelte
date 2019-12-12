@@ -85,8 +85,12 @@
 </div>
 
 <!-- response result -->
-{#if responseData && responseType}
-  <ShowResponseResult responseType={responseType} responseContent={responseData}/>
+{#if response}
+  <ShowResponseResult response={response}/>
+{/if}
+<!-- response error -->
+{#if responseErrorMsg}
+  <pre class="ez-response-error">{responseErrorMsg}</pre>
 {/if}
 
 <script>
@@ -95,7 +99,7 @@
   import FormDataTable from './FormDataTable.svelte';
   import FormUrlEncoded from './FormUrlEncoded.svelte';
   import ShowResponseResult from './ShowResponseResult.svelte';
-  import axios from 'axios';
+  import {fetch} from 'whatwg-fetch';
 
   export let apiData;
 
@@ -116,9 +120,9 @@
   let formDataArray = [{key: '', value: '', valueType: 'text'}];
 
   let errorMessage = '';
+  let responseErrorMsg = '';
 
-  let responseData;
-  let responseType;
+  let response;
 
   $: if (apiData) {
     method = apiData.Api.method;
@@ -329,6 +333,7 @@
   }
 
   function sendRequest () {
+    response = '';
     let checkRequestHeader = checkRequestData(requestHeader, headerParams);
     if (checkRequestHeader.isFail) {
       errorMessage = 'request header ' + checkRequestHeader.message;
@@ -347,20 +352,21 @@
     if (method === 'post' || method === 'put') {
       let checkBody = checkRequestBody();
       if (checkBody) {
-        let bodyData = generateBodyData();
-        sendAxiosRequest(bodyData);
+        let bodyData = generateFetchBodyData();
+        sendFetchRequest(bodyData);
       } else {
         return false;
       }
     } else {
-      sendAxiosRequest();
+      sendFetchRequest();
     }
     errorMessage = '';
+    responseErrorMsg = '';
   }
 
-  function generateBodyData () {
+  function generateFetchBodyData () {
     if (contentType === 'application/json') {
-      return requestBody;
+      return JSON.stringify(requestBody);
     } else if (contentType === 'multipart/form-data') {
       let bodyData = new FormData();
       let formData = trimFormData();
@@ -383,40 +389,69 @@
     }
   }
 
-  function sendAxiosRequest(bodyData) {
-    let request = {};
+  function sendFetchRequest (bodyData) {
+    // credentials setting
+    // "omit" - don't include authentication credentials (e.g. cookies) in the request
+    // "same-origin" - include credentials in requests to the same site
+    // "include" - include credentials in requests to all sites
+    let request = {credentials: 'same-origin'}; // 
     let url = apiData.Api.path;
-    let method = apiData.Api.method;
+    let method = apiData.Api.method.toLocaleUpperCase();
     request.method = method;
+     // set urlParams
+    for (let key in requestUrl) {
+      url = url.replace(`{${key}}`, requestUrl[key])
+    }
+    if (url.indexOf('http') < 0 && url.indexOf('//') < 0) {
+      url = $storeData.baseUrl.replace(/\/?$/g, '') + '/' + url.replace(/^\/?/g,'');
+    }
     // set header
     for (let key in requestHeader) {
       request.headers = request.headers || {};
       request.headers[key] = requestHeader[key];
     }
-    // set urlParams
-    for (let key in requestUrl) {
-      url = url.replace(`{${key}}`, requestUrl[key])
-    }
-    request.url = url;
-    if (url.indexOf('http') < 0 && url.indexOf('//') < 0) {
-      request.baseURL = $storeData.baseUrl;
-    }
     // set query params
+    let queryArr = [];
     for (let key in requestQuery) {
-      request.params = request.params || {};
-      request.params[key] = requestQuery[key];
+      let encodedStr = encodeURIComponent(key) + '=' + encodeURIComponent(requestQuery[key]);
+      queryArr.push(encodedStr);
+    }
+    if (queryArr.length > 0) {
+      url += '?' + queryArr.join('&');
     }
     // if has a request body
     if (bodyData) {
       request.headers = request.headers || {};
       request.headers['content-type'] = contentType;
-      request.data = bodyData;
+      request.body = bodyData;
     }
-    axios(request).then((response) => {
-      responseData =  response.data;
-      responseType = response.headers && response.headers['content-type'] ? response.headers['content-type'] : 'application/json';
+    let getResponse = {};
+    fetch(url, request).then((responseInfo) => {
+      let contentType = responseInfo.headers.get('Content-Type') || 'application/json';
+      let contentDisposition = responseInfo.headers.get('Content-Disposition') || '';
+      let headers = {};
+      responseInfo.headers.forEach((value, key) => {
+        headers[key] = value;
+      })
+      getResponse.headers = headers;
+      getResponse.status = responseInfo.status;
+      if (contentDisposition.indexOf('attachment') >= 0) {
+        return responseInfo.blob()
+      } else {
+        if (contentType.indexOf('application/json') >= 0) {
+          return responseInfo.json();
+        } else if (contentType.indexOf('text/') >= 0) {
+          return responseInfo.text();
+        } else {
+          throw new Error('unknow response content type');
+        }
+      }
+    }).then((responseData) => {
+      getResponse.data = responseData;
+      response = getResponse;
+    }).catch((error) => {
+      responseErrorMsg = error.message
     })
-
   }
 </script>
 
@@ -440,5 +475,9 @@
   }
   .ez-error-info {
     margin-left: 8px;
+  }
+  .ez-response-error {
+    margin-top: 8px;
+    color: #cc0f35;
   }
 </style>

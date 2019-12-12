@@ -3,12 +3,12 @@
     <ul>
       {#each SuccessResponse as response, index}
         <li class:is-active={activeItem === 'success' && activeIndex === index} on:click={() => showSuccess(index)}>
-          <a href="javascript:void(0);">SuccessResponse {response.responseCode}</a>
+          <a href="javascript:void(0);">SuccessResponseDemo {response.responseCode}</a>
         </li>
       {/each}
       {#each ErrorResponse as response, index}
         <li class:is-active={activeItem === 'error' && activeIndex === index} on:click={() => showError(index)}>
-          <a href="javascript:void(0);">ErrorResponse {response.responseCode}</a>
+          <a href="javascript:void(0);">ErrorResponseDemo {response.responseCode}</a>
         </li>
       {/each}  
     </ul>

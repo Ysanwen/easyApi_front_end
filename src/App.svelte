@@ -26,13 +26,22 @@
 		<LeftMenu openSideBar={openSideBar} groupList={groupList}/>
 		<RightContainer/>
 	</div>
+{:else if errorMsg}
+	<article class="message is-warning">
+		<div class="message-header">
+			<p>Warning</p>
+		</div>
+		<div class="message-body">
+			<pre class="message-body-pre">{errorMsg}</pre>
+		</div>
+	</article>
 {:else}
 	<div class="loading-area has-text-primary">数据加载中	<span class="icon is-large"><i class="fas fa-spinner fa-pulse"></i></span></div>
 {/if}
 
 <script>
 	import { onMount, tick, onDestroy } from 'svelte';
-	import axios from 'axios';
+	import {fetch} from 'whatwg-fetch';
 	import { globalSelectedVersion, storeData, versionList, activityGroup, activityItem } from './store.js';
 	import LeftMenu from './LeftMenu.svelte';
 	import RightContainer from './RightContainer.svelte';
@@ -42,6 +51,7 @@
 	let groupList = [];
 	let loadDataComplete = false;
 	let hash = '';
+	let errorMsg = '';
 
 	function openCloseSideBar () {
 		openSideBar = !openSideBar
@@ -55,18 +65,22 @@
 	onMount(() => {
 		hash = window.location.hash;
 		window.location.hash = '#';
-		axios.get('/data/common.json').then((response) => {
+
+		fetch('/data/common.json', {credentials: 'same-origin', method: 'GET'}).then((response) => {
 			if (response.status === 200) {
-				let data = response.data || {};
-				storeData.set(data);
-				docTitle = data.docTitle;
-				versionList.set(data.versionList);
-				globalSelectedVersion.set(data.versionList[0]);
-				getVersionData()
+				return response.json();
 			} else {
-				console.log(response)
+				throw new Error(response.statusText)
 			}
-		})
+		}).then((data) => {
+			storeData.set(data);
+			docTitle = data.docTitle;
+			versionList.set(data.versionList);
+			globalSelectedVersion.set(data.versionList[0]);
+			getVersionData()
+		}).catch((error) => {
+      errorMsg = 'load common.json fail: ' + error.message + '\n';
+    })
 		// listen has change
 		window.addEventListener('hashchange', handlerHashChange);
 	})
@@ -94,6 +108,7 @@
 	})
 
 	let requestNum = 0;
+
 	function getVersionData () {
 		for (let v of $versionList) {
 			let url = `/data/${v}/groupInfo.json`;
@@ -102,14 +117,18 @@
 				return data;
 			})
 			requestNum += 1;
-			axios.get(url).then((response) => {
+
+			fetch(url, {credentials: 'same-origin', method: 'GET'}).then((response) => {
 				if (response.status === 200) {
-					let data = response.data || {};
-					let groupList = data.group || [];
-					getGroupData(v,groupList);
+					return response.json();
 				} else {
-					console.log(response)
+					throw new Error(response.statusText)
 				}
+			}).then((data) => {
+				let groupList = data.group || [];
+				getGroupData(v,groupList);
+			}).catch((error) => {
+				errorMsg += `load ${v}/groupInfo.json fail: ` + error.message + '\n';
 			}).finally(() => requestNum -= 1)
 		}
 	}
@@ -122,15 +141,19 @@
 				return data;
 			})
 			requestNum += 1;
-			axios.get(url).then((response) => {
+			fetch(url, {credentials: 'same-origin', method: 'GET'}).then((response) => {
 				if (response.status === 200) {
-					storeData.update((data) => {
-						data[version][group] = response.data || {};
-						return data;
-					})
+					return response.json();
 				} else {
-					console.log(response)
+					throw new Error(response.statusText)
 				}
+			}).then((responseData) => {
+				storeData.update((data) => {
+					data[version][group] = responseData || {};
+					return data;
+				})
+			}).catch((error) => {
+			errorMsg += `load ${v}/${group}.json fail: ` + error.message + '\n';
 			}).finally(() => {
 				requestNum -= 1;
 				if (requestNum === 0) {
@@ -204,5 +227,14 @@
 		left: 0;
 		right: 0;
 		bottom: 0;
+	}
+	.message {
+		margin-top: 3rem;
+    width: 40rem;
+    margin-left: auto;
+    margin-right: auto;
+	}
+	.message-body-pre {
+		background: inherit;
 	}
 </style>

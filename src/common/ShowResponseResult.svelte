@@ -1,52 +1,125 @@
-<!-- json type -->
-{#if responseType.indexOf('application/json') >= 0}
+<div class="tabs is-boxed ez-tabs">
+  <ul>
+    <li class:is-active={activeItem === 'status'} on:click={() => changeActiveItem('status')}>
+      <a href="javascript:void(0);">Response Status {response.status}</a>
+    </li>
+    <li class:is-active={activeItem === 'header'} on:click={() => changeActiveItem('header')}>
+      <a href="javascript:void(0);">Response Headers</a>
+    </li>
+  </ul>
+</div>
+
+{#if activeItem === 'status'}
   <div class="ez-request-body">
-    <div bind:this={responseJsonEl}></div>
+    {#if hasAttachment}
+      <pre><a href={attachmentFileUrl} download={attachmentFileName}>{attachmentFileName}</a></pre>
+    {:else if responseType.indexOf('application/json') >= 0}
+      <!-- json type -->
+      <div bind:this={responseJsonEl}></div>
+    {:else if responseType.indexOf('text/') >= 0}
+      <!-- text type -->
+      <pre class="ez-header-content">{responseContent}</pre>
+    {/if}
   </div>
-{/if}
+{:else}
+  <div class="ez-request-body">
+    <pre class="ez-header-content">{headerContent}</pre>
+  </div>
+{/if}  
+
 
 <script>
-  import { onMount, onDestroy } from 'svelte';
+  import { onMount, onDestroy, tick } from 'svelte';
   
-  export let responseType = '';
-  export let responseContent;
+  export let response;
+
+  let responseType = '';
+
+  let hasAttachment = false;
+  let attachmentFileName;
+  let attachmentFileUrl;
+
+  let responseContent;
+  let headerContent = '';
+  let activeItem = 'status';
 
   let responseJsonEl;
   let jsonPreview;
+   
+  let hasMounted = false;
 
-  $: if (responseContent) {
-    jsonPreview && jsonPreview.setValue(setJsonValue ());
+  $: if (response && hasMounted) {
+    activeItem === 'status' && initBodyView();
+    activeItem === 'header' && initHeaderView();
+  }
+
+  function changeActiveItem (activityTag) {
+    if (activeItem !== activityTag) {
+      activeItem = activityTag;
+      if (activeItem === 'header') {
+        responseJsonEl = null;
+        jsonPreview = null;
+        // initHeaderView();
+      } else if (activeItem === 'status') {
+        // initBodyView();
+      }
+    }
+  }
+
+  async function initBodyView () {
+    responseType = response.headers && response.headers['content-type'] ? response.headers['content-type'] : 'application/json';
+    responseContent = response.data;
+    let contentDisposition = response.headers && response.headers['content-disposition'] ? response.headers['content-disposition'] : '';
+    if (contentDisposition.indexOf('attachment') >= 0) {
+      hasAttachment = true;
+      if (contentDisposition.indexOf('filename') >= 0) {
+        attachmentFileName = contentDisposition.replace(/(.*filename=)|"/g, '');
+      } else {
+        attachmentFileName = '附件';
+      }
+      attachmentFileUrl = window.URL.createObjectURL(new Blob([responseContent]));
+    } else {
+      hasAttachment = false;
+      attachmentFileName = '';
+      attachmentFileUrl = '';
+    }
+    if (responseType.indexOf('application/json') >= 0 ) {
+      await tick();
+      initJsonPreview();
+    }
+  }
+
+  function initHeaderView () {
+    let headerStr = '';
+    for (let key in response.headers) {
+      headerStr += `${key}: ${response.headers[key]}\n`;
+    }
+    headerContent = headerStr;
   }
 
   onMount (() => {
-    if (responseType.indexOf('application/json') >= 0 ) {
-      initJsonPreview();
-    }
-  })
-
-  onDestroy (() => {
-    if (responseJsonEl && responseJsonEl.parentNode) {
-      responseJsonEl.parentNode.remove(responseJsonEl);
-      responseJsonEl = null;
-      jsonPreview = null;
-    }
+    hasMounted = true;
   })
 
   function initJsonPreview () {
-    jsonPreview = CodeMirror(responseJsonEl, {
-      mode: "application/json",
-      gutters: ["CodeMirror-lint-markers"],
-      lint: true,
-      lineNumbers: true,
-      styleActiveLine: true,
-      matchBrackets: true,
-      smartIndent: true,
-      readOnly: true,
-      tabSize: 2,
-      theme: 'blackboard',
-      tabindex: 2,
-      value: setJsonValue(),
-    });
+    if (jsonPreview && responseJsonEl) {
+      jsonPreview.setValue(setJsonValue());
+    } else {
+      jsonPreview = CodeMirror(responseJsonEl, {
+        mode: "application/json",
+        gutters: ["CodeMirror-lint-markers"],
+        lint: true,
+        lineNumbers: true,
+        styleActiveLine: true,
+        matchBrackets: true,
+        smartIndent: true,
+        readOnly: true,
+        tabSize: 2,
+        theme: 'blackboard',
+        tabindex: 2,
+        value: setJsonValue(),
+      });
+    }
   }
 
   function setJsonValue () {
@@ -91,8 +164,13 @@
 </script>
 
 <style>
-  .ez-request-body {
-    margin-top: 6px;
+  .ez-tabs {
+    margin-top: 8px;
+    margin-bottom: 0.5rem;
+  }
+  .ez-header-content {
+    background: hsl(0, 0%, 21%);
+    color: hsl(0, 0%, 96%);
   }
 </style>
 

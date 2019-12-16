@@ -402,7 +402,7 @@
     for (let key in requestUrl) {
       url = url.replace(`{${key}}`, requestUrl[key])
     }
-    if (url.indexOf('http') < 0 && url.indexOf('//') < 0) {
+    if (url.indexOf('http') < 0 && url.indexOf('//') < 0 && $storeData.baseUrl) {
       url = $storeData.baseUrl.replace(/\/?$/g, '') + '/' + url.replace(/^\/?/g,'');
     }
     // set header

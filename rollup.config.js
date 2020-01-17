@@ -3,8 +3,13 @@ import resolve from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
 import livereload from 'rollup-plugin-livereload';
 import { terser } from 'rollup-plugin-terser';
+import uuid1 from 'uuid/v1';
+import * as fs from 'fs-extra';
 
 const production = !process.env.ROLLUP_WATCH;
+
+const uuid = uuid1();
+fs.emptyDirSync('dist');
 
 export default {
 	input: 'src/main.js',
@@ -12,7 +17,7 @@ export default {
 		sourcemap: true,
 		format: 'iife',
 		name: 'app',
-		file: 'public/build/bundle.js'
+		file: `dist/static/${uuid}_bundle.js`
 	},
 	plugins: [
 		svelte({
@@ -21,7 +26,7 @@ export default {
 			// we'll extract any component CSS out into
 			// a separate file — better for performance
 			css: css => {
-				css.write('public/build/bundle.css');
+				css.write(`dist/static/${uuid}_bundle.css`);
 			}
 		}),
 
@@ -42,16 +47,32 @@ export default {
 
 		// Watch the `public` directory and refresh the
 		// browser on changes when not in production
-		!production && livereload('public'),
+		!production && livereload('dist'),
 
 		// If we're building for production (npm run build
 		// instead of npm run dev), minify
-		production && terser()
+		production && terser(),
+		// copy public files to dist
+		cpStatic('public', 'dist')
 	],
 	watch: {
 		clearScreen: false
 	}
 };
+
+function cpStatic (fromPath, toPath) {
+	try	{
+		fs.copySync(fromPath, toPath);
+		if (fs.existsSync(`${toPath}/index.html`)) {
+			let indexHtml = fs.readFileSync(`${toPath}/index.html`, 'utf8');
+			indexHtml = indexHtml.replace('</head>',
+			`<link rel='stylesheet' href='static/${uuid}_bundle.css'>\n<script defer src='static/${uuid}_bundle.js'></script>\n</head>`);
+			fs.writeFileSync(`${toPath}/index.html`, indexHtml);
+		}
+	} catch (err) {
+		console.log(`copy static file error: ${err.message}`);
+	}
+}
 
 function serve() {
 	let started = false;
@@ -62,7 +83,7 @@ function serve() {
 				started = true;
 
 				require('child_process').spawn('npm', ['run', 'start', '--', '--dev'], {
-					stdio: ['ignore', 'inherit', 'inherit'],
+					stdio: 'inherit',
 					shell: true
 				});
 			}

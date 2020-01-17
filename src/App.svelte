@@ -66,7 +66,7 @@
 		hash = window.location.hash;
 		window.location.hash = '#';
 
-		fetch('/data/common.json', {credentials: 'same-origin', method: 'GET'}).then((response) => {
+		fetch('data/common.json', {credentials: 'same-origin', method: 'GET'}).then((response) => {
 			if (response.status === 200) {
 				return response.json();
 			} else {
@@ -111,7 +111,7 @@
 
 	function getVersionData () {
 		for (let v of $versionList) {
-			let url = `/data/${v}/groupInfo.json`;
+			let url = `data/${v}/groupInfo.json`;
 			storeData.update((data) => {
 				data[v] = {};
 				return data;
@@ -135,7 +135,7 @@
 
 	function getGroupData (version, groupList) {
 		for (let group of groupList) {
-			let url = `/data/${version}/${group}.json`;
+			let url = `data/${version}/${group}.json`;
 			storeData.update((data) => {
 				data[version][group] = data[version][group] || {};
 				return data;

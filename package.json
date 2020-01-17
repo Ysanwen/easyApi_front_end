@@ -2,13 +2,15 @@
   "name": "easy-api",
   "version": "1.0.0",
   "devDependencies": {
+    "fs-extra": "^8.1.0",
     "rollup": "^1.12.0",
     "rollup-plugin-commonjs": "^10.0.0",
     "rollup-plugin-livereload": "^1.0.0",
     "rollup-plugin-node-resolve": "^5.2.0",
     "rollup-plugin-svelte": "^5.0.3",
     "rollup-plugin-terser": "^5.1.2",
-    "svelte": "^3.0.0"
+    "svelte": "^3.0.0",
+    "uuid": "^3.3.3"
   },
   "dependencies": {
     "sirv-cli": "^0.4.4",
@@ -17,7 +19,7 @@
   "scripts": {
     "build": "rollup -c",
     "dev": "rollup -c -w",
-    "start": "sirv public --port 8080"
+    "start": "sirv dist --port 8080"
   },
   "license": "MIT",
   "author": "Ysw"

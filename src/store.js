@@ -5,3 +5,4 @@ export const globalSelectedVersion = writable('');
 export const versionList = writable([]);
 export const activityGroup = writable('');
 export const activityItem = writable('');
+export const lang = writable({});

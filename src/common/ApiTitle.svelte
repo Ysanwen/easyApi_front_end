@@ -2,7 +2,7 @@
   <div class="ez-api-title level" id={group + '-' + apiName}>
     <div class="level-left">
       {#if deprecatedDescription}
-        <h5 class="title is-5 ez-deprecated">{apiName + '(接口弃用)' + (apiNameDescription ? ' - ' + apiNameDescription : '')}</h5>
+        <h5 class="title is-5 ez-deprecated">{apiName + '(' + $lang.deprecated + ')' + (apiNameDescription ? ' - ' + apiNameDescription : '')}</h5>
       {:else}
       <h5 class="title is-5">{apiName + (apiNameDescription ? ' - ' + apiNameDescription : '')}</h5>
       {/if}
@@ -18,7 +18,7 @@
 {/if}
 <!-- deprecated description -->
 {#if deprecatedDescription}
-  <pre class="ez-description"><div class="ez-deprecated">接口弃用相关说明:{#if replaceWith}<a href={'#' + replaceWith.replace('#', '-')}>(点击去替代接口)</a>{/if}</div>{@html deprecatedDescription}</pre>
+  <pre class="ez-description"><div class="ez-deprecated">{$lang.deprecatedDescription}:{#if replaceWith}<a href={'#' + replaceWith.replace('#', '-')}>(${lang.replaceWithText})</a>{/if}</div>{@html deprecatedDescription}</pre>
 {/if}
 
 <!-- api description -->
@@ -45,7 +45,7 @@
 
 <script>
   import { onMount, createEventDispatcher } from 'svelte';
-  import { versionList, globalSelectedVersion, storeData } from '../store.js';
+  import { versionList, globalSelectedVersion, storeData, lang } from '../store.js';
   
   export let apiData;
   export let group;

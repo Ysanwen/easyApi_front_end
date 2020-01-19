@@ -1,7 +1,7 @@
 <!-- header part -->
 {#if headerParams && headerParams.length > 0}
   <div class="ez-request-param">
-    <h6 class="title is-6">Headers请求参数</h6>
+    <h6 class="title is-6">{$lang.headerParam}</h6>
     {#each headerParams as header (header.key)}
       <div class="field has-addons">
         <p class="control">
@@ -18,7 +18,7 @@
 <!-- url part -->
 {#if urlParams && urlParams.length > 0}
   <div class="ez-request-param">
-    <h6 class="title is-6">url请求参数</h6>
+    <h6 class="title is-6">{$lang.urlParam}</h6>
     {#each urlParams as url (url.key)}
       <div class="field has-addons">
         <p class="control">
@@ -35,7 +35,7 @@
 <!-- query part -->
 {#if queryParams && queryParams.length > 0}
   <div class="ez-request-param">
-    <h6 class="title is-6">query查询请求参数</h6>
+    <h6 class="title is-6">{$lang.queryParam}</h6>
     {#each queryParams as query (query.key)}
       <div class="field has-addons">
         <p class="control">
@@ -52,7 +52,7 @@
 <!-- body part -->
 {#if (method === 'post' || method === 'put') && bodyParams && bodyParams.length > 0}
  <div class="ez-request-param">
-    <h6 class="title is-6">body参数 contentType: {contentType}</h6>
+    <h6 class="title is-6">{$lang.bodyParam} contentType: {contentType}</h6>
     <!-- json type -->
     {#if contentType === 'application/json'}
       <div class="ez-request-body">
@@ -95,7 +95,7 @@
 
 <script>
   import { onMount, onDestroy } from 'svelte';
-  import { storeData } from '../store.js';
+  import { storeData, lang } from '../store.js';
   import FormDataTable from './FormDataTable.svelte';
   import FormUrlEncoded from './FormUrlEncoded.svelte';
   import ShowResponseResult from './ShowResponseResult.svelte';

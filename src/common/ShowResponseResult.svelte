@@ -30,6 +30,7 @@
 
 <script>
   import { onMount, onDestroy, tick } from 'svelte';
+  import { lang } from '../store.js';
   
   export let response;
 
@@ -75,7 +76,7 @@
       if (contentDisposition.indexOf('filename') >= 0) {
         attachmentFileName = contentDisposition.replace(/(.*filename=)|"/g, '');
       } else {
-        attachmentFileName = '附件';
+        attachmentFileName = lang.attachment;
       }
       attachmentFileUrl = window.URL.createObjectURL(new Blob([responseContent]));
     } else {

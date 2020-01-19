@@ -2,7 +2,7 @@
 	<title>{docTitle}</title>
 </svelte:head>
 <header class="ez-header level">
-	<div class="level-left is-four-fifths">
+	<div class="level-left">
 		<span on:click={openCloseSideBar} class="menu-button">
 			{#if openSideBar}
 				<span class="icon icon-item"><i class="fas fa-align-justify"></i></span>
@@ -11,14 +11,22 @@
 			{/if}
 		</span>
 		{docTitle}
+		<span class="version-selector">
+			<label for="version">{$lang.version}:</label>
+			<select id="version" class="seclect-width" bind:value={$globalSelectedVersion} on:change={doSelectVersion}>
+				{#each $versionList as version}
+					<option value={version}>{version}</option>
+				{/each}
+			</select>
+		</span>
 	</div>
 	<div class="level-right version-selector">
-		<label for="version">Version:</label>
-		<select id="version" class="seclect-width" bind:value={$globalSelectedVersion} on:change={doSelectVersion}>
-			{#each $versionList as version}
-				<option value={version}>{version}</option>
-			{/each}
-		</select>
+	<!-- lang -->
+		<select class="seclect-width" bind:value={languageKey}>
+				{#each languageList as language}
+					<option value={language.languageKey}>{language.languageName}</option>
+				{/each}
+			</select>
 	</div>
 </header>
 {#if loadDataComplete}
@@ -29,29 +37,35 @@
 {:else if errorMsg}
 	<article class="message is-warning">
 		<div class="message-header">
-			<p>Warning</p>
+			<p>{lang.warning}</p>
 		</div>
 		<div class="message-body">
 			<pre class="message-body-pre">{errorMsg}</pre>
 		</div>
 	</article>
 {:else}
-	<div class="loading-area has-text-primary">数据加载中	<span class="icon is-large"><i class="fas fa-spinner fa-pulse"></i></span></div>
+	<div class="loading-area has-text-primary">{lang.loading}	<span class="icon is-large"><i class="fas fa-spinner fa-pulse"></i></span></div>
 {/if}
 
 <script>
 	import { onMount, tick, onDestroy } from 'svelte';
 	import {fetch} from 'whatwg-fetch';
-	import { globalSelectedVersion, storeData, versionList, activityGroup, activityItem } from './store.js';
+	import { languageList, getLang } from './lang/index.js';
+	import { globalSelectedVersion, storeData, versionList, activityGroup, activityItem, lang } from './store.js';
 	import LeftMenu from './LeftMenu.svelte';
 	import RightContainer from './RightContainer.svelte';
-	
+
+	let languageKey = 'zhCn';
 	let docTitle = 'API Doc';
 	let openSideBar = true;
 	let groupList = [];
 	let loadDataComplete = false;
 	let hash = '';
 	let errorMsg = '';
+
+	$: if (languageKey) {
+		lang.set(getLang(languageKey));
+	}
 
 	function openCloseSideBar () {
 		openSideBar = !openSideBar
@@ -209,13 +223,12 @@
 	}
 	.version-selector {
 		color: #666;
+		margin-left: 10px;
 	}
-	#version {
+	.seclect-width {
 		font-size: 14px;
 		color: #666;
 		margin-left: 8px;
-	}
-	.seclect-width {
 		min-width: 120px;
 	}
 	.loading-area {

@@ -2,17 +2,17 @@
 <table class="table is-fullwidth is-bordered is-hoverable">
   <tbody>
     <tr>
-      <th class="ez-param">参数类别</th>
-      <th class="ez-param">字段</th>
-      <th class="ez-param">类型</th>
-      <th class="ez-param-description">描述</th>
+      <th class="ez-param">{$lang.paramCatalog}</th>
+      <th class="ez-param">{$lang.paramKey}</th>
+      <th class="ez-param">{$lang.paramType}</th>
+      <th class="ez-param-description">{$lang.paramDescription}</th>
     </tr>
     {#each HeaderParam as header, i}
       <tr>
         {#if i === 0}
-          <td rowspan={HeaderParam.length}>HeaderParam</td>
+          <td rowspan={HeaderParam.length}>{$lang.headerParam}</td>
         {/if}  
-        <td>{header.key}  <span class={header.isRequired === false ? 'tag is-info is-light' : 'tag is-danger is-light'}>{header.isRequired === false ? '可选' : '必须'}</span></td>
+        <td>{header.key}  <span class={header.isRequired === false ? 'tag is-info is-light' : 'tag is-danger is-light'}>{header.isRequired === false ? $lang.isOptional : $lang.isRequired}</span></td>
         <td>{header.valueType}</td>
         <td>{header.description}</td>
       </tr>
@@ -20,9 +20,9 @@
     {#each UrlParam as url, i}
       <tr>
         {#if i === 0}
-          <td rowspan={UrlParam.length}>UrlParam</td>
+          <td rowspan={UrlParam.length}>{$lang.urlParam}</td>
         {/if}  
-        <td>{url.key}  <span class={url.isRequired === false ? 'tag is-info is-light' : 'tag is-danger is-light'}>{url.isRequired === false ? '可选' : '必须'}</span></td>
+        <td>{url.key}  <span class={url.isRequired === false ? 'tag is-info is-light' : 'tag is-danger is-light'}>{url.isRequired === false ? $lang.isOptional : $lang.isRequired}</span></td>
         <td>{url.valueType}</td>
         <td>{url.description}</td>
       </tr>
@@ -30,9 +30,9 @@
     {#each QueryParam as query, i}
       <tr>
         {#if i === 0}
-          <td rowspan={QueryParam.length}>QueryParam</td>
+          <td rowspan={QueryParam.length}>{$lang.queryParam}</td>
         {/if}  
-        <td>{query.key}  <span class={query.isRequired === false ? 'tag is-info is-light' : 'tag is-danger is-light'}>{query.isRequired === false ? '可选' : '必须'}</span></td>
+        <td>{query.key}  <span class={query.isRequired === false ? 'tag is-info is-light' : 'tag is-danger is-light'}>{query.isRequired === false ? $lang.isOptional : $lang.isRequired}</span></td>
         <td>{query.valueType}</td>
         <td>{query.description}</td>
       </tr>
@@ -40,9 +40,9 @@
     {#each BodyParam as body, i}
       <tr>
         {#if i === 0}
-          <td rowspan={BodyParam.length}>BodyParam</td>
+          <td rowspan={BodyParam.length}>{$lang.bodyParam}</td>
         {/if}  
-        <td>{body.key}  <span class={body.isRequired === false ? 'tag is-info is-light' : 'tag is-danger is-light'}>{body.isRequired === false ? '可选' : '必须'}</span></td>
+        <td>{body.key}  <span class={body.isRequired === false ? 'tag is-info is-light' : 'tag is-danger is-light'}>{body.isRequired === false ? lang.isOptional : lang.isRequired}</span></td>
         <td>{body.valueType}</td>
         <td>{body.description}</td>
       </tr>
@@ -51,6 +51,7 @@
 </table>
 {/if}
 <script>
+  import { lang } from '../store.js';
   export let apiData;
 
   let HeaderParam = [];

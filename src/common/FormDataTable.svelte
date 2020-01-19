@@ -2,10 +2,10 @@
   <table class="table is-fullwidth is-bordered is-hoverable">
     <tbody>
       <tr>
-        <th class="ez-th">参数key</th>
-        <th class="ez-th ez-th-value">value</th>
-        <th class="ez-th">类型</th>
-        <th class="ez-th-description">操作</th>
+        <th class="ez-th">{$lang.param}</th>
+        <th class="ez-th ez-th-value">{$lang.value}</th>
+        <th class="ez-th">{$lang.type}</th>
+        <th class="ez-th-description">{$lang.operate}</th>
       </tr>
       {#each paramsArray as param, index}
         <tr>
@@ -20,7 +20,7 @@
                       <i class="fas fa-upload"></i>
                     </span>
                     <span class="file-label">
-                      选择文件…
+                      ${lang.selectFile}
                     </span>
                   </span>
                   <span class="file-name">
@@ -40,17 +40,18 @@
               </select>
             </div>
           </td>
-          <td><button class="button is-danger" on:click={() => removeParam(index)}>删除</button></td>
+          <td><button class="button is-danger" on:click={() => removeParam(index)}>{$lang.delete}</button></td>
         </tr>
       {/each}
       <tr>
-        <td colspan="4"><button class="button is-outlined is-fullwidth" on:click={addNewParam}>新增</button></td>
+        <td colspan="4"><button class="button is-outlined is-fullwidth" on:click={addNewParam}>{$lang.addNew}</button></td>
       </tr>
     </tbody>
   </table>    
 </div>
 
 <script>
+  import { lang } from '../store.js';
   export let paramsArray = [];
 
   function selectFile (e, index) {

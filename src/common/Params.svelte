@@ -42,7 +42,7 @@
         {#if i === 0}
           <td rowspan={BodyParam.length}>{$lang.bodyParam}</td>
         {/if}  
-        <td>{body.key}  <span class={body.isRequired === false ? 'tag is-info is-light' : 'tag is-danger is-light'}>{body.isRequired === false ? lang.isOptional : lang.isRequired}</span></td>
+        <td>{body.key}  <span class={body.isRequired === false ? 'tag is-info is-light' : 'tag is-danger is-light'}>{body.isRequired === false ? $lang.isOptional : $lang.isRequired}</span></td>
         <td>{body.valueType}</td>
         <td>{body.description}</td>
       </tr>

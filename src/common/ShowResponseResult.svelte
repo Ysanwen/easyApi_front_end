@@ -76,7 +76,7 @@
       if (contentDisposition.indexOf('filename') >= 0) {
         attachmentFileName = contentDisposition.replace(/(.*filename=)|"/g, '');
       } else {
-        attachmentFileName = lang.attachment;
+        attachmentFileName = $lang.attachment;
       }
       attachmentFileUrl = window.URL.createObjectURL(new Blob([responseContent]));
     } else {

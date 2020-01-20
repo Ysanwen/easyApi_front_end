@@ -37,14 +37,14 @@
 {:else if errorMsg}
 	<article class="message is-warning">
 		<div class="message-header">
-			<p>{lang.warning}</p>
+			<p>{$lang.warning}</p>
 		</div>
 		<div class="message-body">
 			<pre class="message-body-pre">{errorMsg}</pre>
 		</div>
 	</article>
 {:else}
-	<div class="loading-area has-text-primary">{lang.loading}	<span class="icon is-large"><i class="fas fa-spinner fa-pulse"></i></span></div>
+	<div class="loading-area has-text-primary">{$lang.loading}	<span class="icon is-large"><i class="fas fa-spinner fa-pulse"></i></span></div>
 {/if}
 
 <script>
@@ -55,7 +55,7 @@
 	import LeftMenu from './LeftMenu.svelte';
 	import RightContainer from './RightContainer.svelte';
 
-	let languageKey = 'zhCn';
+	let languageKey = 'enUs';
 	let docTitle = 'API Doc';
 	let openSideBar = true;
 	let groupList = [];
@@ -77,6 +77,7 @@
 	};
 
 	onMount(() => {
+		setDefaultLang();
 		hash = window.location.hash;
 		window.location.hash = '#';
 
@@ -98,6 +99,20 @@
 		// listen has change
 		window.addEventListener('hashchange', handlerHashChange);
 	})
+
+	function setDefaultLang () {
+		let langStr = navigator.language || navigator.userLanguage || 'enUs';
+		langStr = langStr.substr(0,2);
+		let getKey = '';
+		for (let lang of languageList) {
+			if (lang.languageKey.indexOf(langStr) >= 0) {
+				getKey = lang.languageKey;
+				break;
+			}
+		}
+		getKey = getKey || 'enUs';
+		languageKey = getKey;
+	}
 
 	function handlerHashChange () {
 		let gethas = window.location.hash.replace(/#/g, '');

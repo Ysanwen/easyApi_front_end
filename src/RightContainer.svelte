@@ -73,6 +73,6 @@
     overflow-y: scroll;
   }
   .main-content {
-    padding: 6px 8px;
+    padding: 6px 12px;
   }
 </style>

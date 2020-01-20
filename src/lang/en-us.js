@@ -3,7 +3,7 @@ export default {
   version: 'Version',
   warning: 'Warning',
   loading: 'loading......',
-  paramCatalog: 'ParamCatalog',
+  paramCatalog: 'ParamPart',
   paramKey: 'ParamKey',
   paramType: 'ParamType',
   paramDescription: 'Description',
@@ -15,8 +15,6 @@ export default {
   isOptional: 'isOptional',
 
   deprecated: 'Deprecated',
-  deprecatedDescription: 'deprecated description',
-  replaceWithText: 'click to replace api',
   param: 'param',
   value: 'value',
   type: 'type',
@@ -24,6 +22,14 @@ export default {
   selectFile: 'select a file...',
   delete: 'delete',
   addNew: 'addNew',
+  sendRequestButtonText: 'Try Send Request',
 
-  attachment: 'attachment'
+  attachment: 'attachment',
+  invalidJson: 'invalid Json format',
+  bodyParamWarningText: 'body params key is required',
+  bodyParamWarningErrorTypeText: 'body params with error type',
+  isRequiredText: 'is required',
+
+  successResponseDemo: 'SuccessResponseDemo',
+  errorResponseDemo: 'ErrorResponseDemo'
 }

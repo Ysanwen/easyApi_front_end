@@ -15,8 +15,6 @@ export default {
   isOptional: '可选',
 
   deprecated: '接口弃用',
-  deprecatedDescription: '接口弃用相关说明',
-  replaceWithText: '点击去替代接口',
   param: '参数',
   value: '值',
   type: '类型',
@@ -24,6 +22,14 @@ export default {
   selectFile: '选择文件...',
   delete: '删除',
   addNew: '新增',
+  sendRequestButtonText: '发送请求',
 
-  attachment: '附件'
+  attachment: '附件',
+  invalidJson: '存在非法json格式',
+  bodyParamWarningText: '请求体参数必须设置',
+  bodyParamWarningErrorTypeText: '请求体参数类型错误',
+  isRequiredText: '必须设置',
+
+  successResponseDemo: '成功请求示例',
+  errorResponseDemo: '失败请求示例'
 }

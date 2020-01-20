@@ -14,7 +14,7 @@ fs.emptyDirSync('dist');
 export default {
 	input: 'src/main.js',
 	output: {
-		sourcemap: true,
+		sourcemap: production ? false : true,
 		format: 'iife',
 		name: 'app',
 		file: `dist/static/${uuid}_bundle.js`

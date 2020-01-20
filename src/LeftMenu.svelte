@@ -79,6 +79,7 @@
     overflow-y: scroll;
     /* border-right: 1px solid #4DB6AC; */
     background:hsl(0, 0%, 98%);
+    box-shadow: 0 2px 4px #232425;
   }
   .ez-group-title {
     cursor: pointer;

@@ -3,12 +3,12 @@
     <ul>
       {#each SuccessResponse as response, index}
         <li class:is-active={activeItem === 'success' && activeIndex === index} on:click={() => showSuccess(index)}>
-          <a href="javascript:void(0);">SuccessResponseDemo {response.responseCode}</a>
+          <a href="javascript:void(0);">{$lang.successResponseDemo} {response.responseCode}</a>
         </li>
       {/each}
       {#each ErrorResponse as response, index}
         <li class:is-active={activeItem === 'error' && activeIndex === index} on:click={() => showError(index)}>
-          <a href="javascript:void(0);">ErrorResponseDemo {response.responseCode}</a>
+          <a href="javascript:void(0);">{$lang.errorResponseDemo} {response.responseCode}</a>
         </li>
       {/each}  
     </ul>
@@ -19,6 +19,7 @@
 {/if}
 
 <script>
+  import { lang } from '../store.js';
   export let apiData;
 
   let SuccessResponse;

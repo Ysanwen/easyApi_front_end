@@ -74,15 +74,17 @@
   </div> 
 {/if}
 <!-- send request -->
-<div class="ez-request">
-  <button class="button is-link" on:click={sendRequest}>Try Send Request</button>
-  {#if errorMessage}
-    <span class="tag is-warning is-large is-light ez-error-info">
-      {errorMessage}
-      <button class="delete is-small" on:click={closeErrorMessage}></button>
-    </span>
-  {/if}
-</div>
+{#if showSendRequest}
+  <div class="ez-request">
+    <button class="button is-link" on:click={sendRequest}>{$lang.sendRequestButtonText}</button>
+    {#if errorMessage}
+      <span class="tag is-warning is-large is-light ez-error-info">
+        {errorMessage}
+        <button class="delete is-small" on:click={closeErrorMessage}></button>
+      </span>
+    {/if}
+  </div>
+{/if}
 
 <!-- response result -->
 {#if response}
@@ -121,6 +123,7 @@
 
   let errorMessage = '';
   let responseErrorMsg = '';
+  let showSendRequest = true;
 
   let response;
 
@@ -131,6 +134,11 @@
     queryParams = apiData.QueryParam || [];
     bodyParams = apiData.BodyParam || [];
     apiData.ContentType && (contentType = apiData.ContentType);
+    if ($storeData.tryRequest === false || (apiData.TryRequest && apiData.TryRequest.tryRequest === false)) {
+      showSendRequest = false;
+    } else {
+      showSendRequest = true;
+    }
     // modify contentType
     contentType = 'application/json';
   }
@@ -241,7 +249,7 @@
     for (let item of dataConfigArray) {
       if (item.isRequired !== false) {
         if (data[item.key] === null || data[item.key] === undefined || data[item.key] === '') {
-          return {isFail: true, message: `key: ${item.key} is required`};
+          return {isFail: true, message: `${item.key} ${$lang.isRequiredText}`};
           break;
         }
       }
@@ -258,7 +266,7 @@
         }
       });
       if (hasError) {
-        errorMessage = '存在非法json格式';
+        errorMessage = $lang.invalidJson;
         return false;
       } else {
         let value = editor.getValue();
@@ -302,14 +310,14 @@
       if (params[key]) {
         if (params[key].isRequired && dataItem.value === '') {
           result = false;
-          errorMessage = `body params key: "${key}" is required`
+          errorMessage = `${$lang.bodyParamWarningText}: ${key}`;
           break;
         }
       }
       index >= 0 && (keys.splice(index, 1));
     }
     if (result && keys.length > 0) {
-      errorMessage = `body params key: "${keys[0]}" is required`;
+      errorMessage = `${$lang.bodyParamWarningText}: ${key}`;
       result = false;
     }
     return result;
@@ -325,7 +333,7 @@
         result = true;
       } else if (Object.prototype.toString.call(jsonValue[key]).toLocaleLowerCase().indexOf(valueType) < 0) {
         result = false;
-        errorMessage = `body params key: "${key}" with error type`;
+        errorMessage = `${$lang.bodyParamWarningErrorTypeText}: ${key}`;
         break;
       }
     }
@@ -336,17 +344,17 @@
     response = '';
     let checkRequestHeader = checkRequestData(requestHeader, headerParams);
     if (checkRequestHeader.isFail) {
-      errorMessage = 'request header ' + checkRequestHeader.message;
+      errorMessage = `${$lang.headerParam} ${checkRequestHeader.message}`;
       return false;
     }
     let checkRequestUrl = checkRequestData(requestUrl, urlParams);
     if (checkRequestUrl.isFail) {
-      errorMessage = 'request url ' + checkRequestUrl.message;
+      errorMessage = `${$lang.urlParam} ${checkRequestUrl.message}`;
       return false;
     }
     let checkRequestQuery = checkRequestData(requestQuery, queryParams);
     if (checkRequestQuery.isFail) {
-      errorMessage = 'request query ' + checkRequestQuery.message;
+      errorMessage = `${$lang.queryParam} ${checkRequestQuery.message}`;
       return false;
     }
     if (method === 'post' || method === 'put') {
@@ -435,22 +443,29 @@
       })
       getResponse.headers = headers;
       getResponse.status = responseInfo.status;
-      if (contentDisposition.indexOf('attachment') >= 0) {
-        return responseInfo.blob()
-      } else {
-        if (contentType.indexOf('application/json') >= 0) {
-          return responseInfo.json();
-        } else if (contentType.indexOf('text/') >= 0) {
-          return responseInfo.text();
+      if (responseInfo.status >= 200 && responseInfo.status < 300) {
+        if (contentDisposition.indexOf('attachment') >= 0) {
+          return responseInfo.blob()
         } else {
-          throw new Error('unknow response content type');
+          if (contentType.indexOf('application/json') >= 0) {
+            return responseInfo.json();
+          } else if (contentType.indexOf('text/') >= 0) {
+            return responseInfo.text();
+          } else {
+            throw new Error('unknow response content type');
+          }
         }
+      } else {
+        // reject on HTTP error statuses
+        let error = new Error(responseInfo.statusText);
+        error.response = responseInfo;
+        throw error;
       }
     }).then((responseData) => {
       getResponse.data = responseData;
       response = getResponse;
     }).catch((error) => {
-      responseErrorMsg = error.message
+      responseErrorMsg = error.message;
     })
   }
 </script>

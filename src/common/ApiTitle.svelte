@@ -18,7 +18,11 @@
 {/if}
 <!-- deprecated description -->
 {#if deprecatedDescription}
-  <pre class="ez-description"><div class="ez-deprecated">{$lang.deprecatedDescription}:{#if replaceWith}<a href={'#' + replaceWith.replace('#', '-')}>(${lang.replaceWithText})</a>{/if}</div>{@html deprecatedDescription}</pre>
+  <pre class="ez-description">
+    <div class="ez-deprecated">
+      {@html replaceWith ? getReplaceLink() : deprecatedDescription}
+    </div>
+  </pre>
 {/if}
 
 <!-- api description -->
@@ -83,6 +87,24 @@
     disableVersionList = disable;
   })
 
+  function getReplaceLink () {
+    if (deprecatedDescription && replaceWith) {
+      let findSplit = replaceWith.indexOf('#');
+      let group = '';
+      let replaceName = '';
+      if (findSplit >= 0) {
+        group = replaceWith.substr(0, findSplit);
+        replaceName = replaceWith.substr(findSplit + 1);
+      } else {
+        group = apiData.Group ? (apiData.Group.key || '') : '';
+        replaceName = replaceWith;
+      }
+      let replaceLink = `<a href='#${group}-${replaceName}'}>${replaceName}</a>`;
+      return deprecatedDescription.replace(replaceWith, replaceLink);
+    } else {
+      return ''
+    }
+  }
   function doSelectVersion () {
     if ($storeData[selectedVersion] && $storeData[selectedVersion][group] && $storeData[selectedVersion][group][apiName]) {
       dispatch('changeApiVersion', $storeData[selectedVersion][group][apiName]);

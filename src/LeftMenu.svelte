@@ -19,7 +19,7 @@
                     <a href="#{group.groupName}-{subItem.title}"
                       class={$activityGroup === group.groupName && $activityItem === subItem.title ? "is-activity" : "not-activity"}
                       data-click-group={group.groupName}
-                      data-click-name={subItem.title}>{subItem.title} - {subItem.description}</a>
+                      data-click-name={subItem.title}>{subItem.description ? subItem.title + ' - ' + subItem.description : subItem.title}</a>
                   </li>
                 {/each}
               </ul>

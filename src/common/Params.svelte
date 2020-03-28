@@ -43,7 +43,7 @@
           <td rowspan={BodyParam.length}>{$lang.bodyParam}</td>
         {/if}  
         <td>{body.key}  <span class={body.isRequired === false ? 'tag is-info is-light' : 'tag is-danger is-light'}>{body.isRequired === false ? $lang.isOptional : $lang.isRequired}</span></td>
-        <td>{body.valueType}</td>
+        <ParamInfoModal valueType={body.valueType}/>
         <td>{body.description}</td>
       </tr>
     {/each}
@@ -52,6 +52,7 @@
 {/if}
 <script>
   import { lang } from '../store.js';
+  import ParamInfoModal from './ParamInfoModal.svelte'
   export let apiData;
 
   let HeaderParam = [];

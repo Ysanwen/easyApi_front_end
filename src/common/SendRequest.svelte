@@ -169,68 +169,83 @@
       tabSize: 2,
       theme: 'eclipse',
       tabindex: 2,
-      value: setJsonValue(),
+      value: setJsonStr(),
     });
   }
 
-  function setJsonValue () {
-    let obj = {};
+  function setJsonStr () {
     if (bodyParams && bodyParams.length > 0) {
-      for (let item of bodyParams) {
-        let key = item.key;
-        let valueType = item.valueType;
+      let str = `{\n`;
+      let currentIndent = 1;
+      str += parseParams(bodyParams, currentIndent)
+      str = str.replace(/,\n$/, '\n');
+      return `${str}}`
+    } else {
+      return "{}"
+    }
+  }
+
+  function parseParams (paramsArr, currentIndent) {
+    let str = '';
+    for (let item of paramsArr) {
+      let indentStr = generateIndent(currentIndent);
+      let key = item.key;
+      let valueType = item.valueType;
+      if (valueType.indexOf('$Ref') >= 0) {
+        // deal with the ref type
+        let refKey = valueType.replace(/^\s*\$\s*Ref\s*:\s*|\[|\]|\s/g, '');
+        valueType = /\[.*\]/.test(valueType) ? 'array' : 'object';
+        // str += valueType === 'array' ? `${indentStr}"${key}":[],\n` : `${indentStr}"${key}":{},\n`;
+        let refValue = generateRefModel(refKey, valueType, currentIndent);
+        str += `${indentStr}"${key}":${refValue},\n`; 
+      } else if (/\[.*\]/.test(valueType)) {
+        valueType = 'array';
+        str += `${indentStr}"${key}":[],\n`;
+      } else {
         switch (valueType) {
           case "string":
-            obj[key] = "";
+            str += `${indentStr}"${key}":"",\n`;
             break;
           case "boolean":
-            obj[key] = "";
+            str += `${indentStr}"${key}":"",\n`;
             break;
           case "number":
-             obj[key] = 0;
+            str += `${indentStr}"${key}":0,\n`;
+            break;
+          case "integer":
+            str += `${indentStr}"${key}":0,\n`;
+            break;
+          case "float":
+            str += `${indentStr}"${key}":0.0,\n`;
             break;
           case "array":
-             obj[key] = [];
+            str += `${indentStr}"${key}":[],\n`;
             break;
           case "object":
-             obj[key] = {};
+            str += `${indentStr}"${key}":{},\n`;
             break;
           default:
-            obj[key] = "";
+            str += `${indentStr}"${key}":"",\n`;
             break;
         }
       }
-      // obj.userRole=[{a:1},'b','c'];
-      let objStr = JSON.stringify(obj);
-      objStr = formatJson(objStr);
-      return objStr
-    } else {
-      return JSON.stringify(obj)
     }
+    return str;
   }
-  function formatJson (jsonStr) {
-    let prettyJson = '';
-    let currentIndent = 0;
-    let long = jsonStr.length;
-    let copyText = '';
-    for (let i = 0; i < long; i++) {
-      if (jsonStr[i] === '{') {
-        currentIndent += 1;
-        prettyJson += copyText + jsonStr[i] + '\n' + generateIndent(currentIndent);
-        copyText = '';
-      } else if (jsonStr[i] === '}') {
-        currentIndent -= 1;
-        prettyJson += copyText + '\n' + generateIndent(currentIndent) + jsonStr[i];
-        copyText = '';
-      } else {
-        copyText += jsonStr[i];
-        if (jsonStr[i] === ',') {
-          prettyJson += copyText + '\n' + generateIndent(currentIndent);
-          copyText = '';
-        }
-      } 
+
+  function generateRefModel (refKey, valueType, currentIndent) {
+    let str = '';
+    let indentStr = generateIndent(currentIndent);
+    if ($storeData[refKey] && $storeData[refKey].Property && $storeData[refKey].Property.length > 0) {
+      let props = $storeData[refKey].Property;
+      str += valueType === 'array' ? `[{\n` : `{\n`;
+      str += parseParams(props, currentIndent + 1);
+      str = str.replace(/,\n$/, '\n');
+      str += valueType === 'array' ? `${indentStr}}]` : `${indentStr}}`;
+    } else {
+      str += valueType === 'array' ? `[],\n` : `{},\n`;
     }
-    return prettyJson;
+    return str;
   }
 
   function generateIndent (indentNumber) {
@@ -327,17 +342,36 @@
     let result = true;
     for (let item of bodyParams) {
       let key = item.key;
-      let valueType = item.valueType;
+      let valueType = transformValueType(item.valueType);
       let isRequired = item.isRequired;
       if (isRequired === false && (jsonValue[key] === undefined || jsonValue[key] === null)) {
         result = true;
-      } else if (Object.prototype.toString.call(jsonValue[key]).toLocaleLowerCase().indexOf(valueType) < 0) {
+      } else if (Object.prototype.toString.call(jsonValue[key]).toLocaleLowerCase().indexOf(valueType) > 0) {
+        result = true;
+      } else {
         result = false;
         errorMessage = `${$lang.bodyParamWarningErrorTypeText}: ${key}`;
         break;
       }
     }
     return result;
+  }
+
+  function transformValueType (valueType) {
+    // change to simple type
+    // 'string', 'number', 'integer', 'float', 'boolean', 'array', 'object', 'null', 'date', 'datetime',
+    // 'string[]', 'number[]', 'integer[]', 'float[]', 'boolean[]', 'array[]', 'object[]', 'null[]', 'date[]', 'datetime[]'
+    if (valueType.indexOf('[') >= 0 && valueType.indexOf(']') >= 0) {
+      return 'array';
+    } else if (valueType.indexOf('$Ref') >= 0) {
+      return 'object';
+    } else if (valueType.indexOf('number') >= 0 || valueType.indexOf('integer') >= 0 || valueType.indexOf('float') >= 0) {
+      return 'number';
+    } else if (valueType.indexOf('date') >= 0) {
+      return 'string';
+    } else {
+      return valueType;
+    }
   }
 
   function sendRequest () {

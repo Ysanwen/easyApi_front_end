@@ -13,19 +13,29 @@
       {/each}  
     </ul>
   </div>
-  <pre class="ez-response-sample">
-    {@html activeItem === 'success' ? SuccessResponse[activeIndex].description : ErrorResponse[activeIndex].description}
-  </pre>
+  {#if responseType === 'json'}
+    <!-- json type -->
+    <div bind:this={responseJsonEl}></div>
+  {:else}
+    <pre class="ez-response-sample">
+      {@html activeItem === 'success' ? SuccessResponse[activeIndex].description : ErrorResponse[activeIndex].description}
+    </pre>
+  {/if}
 {/if}
 
 <script>
-  import { lang } from '../store.js';
+  import { tick } from 'svelte';
+  import { storeData, lang } from '../store.js';
   export let apiData;
 
   let SuccessResponse;
   let ErrorResponse;
   let activeItem = '';
   let activeIndex = 0;
+  let responseType = '';
+  let responseJsonEl;
+  let jsonPreview = null;
+  let refKey = '';
 
   $: if(apiData) {
     SuccessResponse = apiData.SuccessResponse || [];
@@ -37,6 +47,20 @@
     }
   }
 
+  $: if (activeItem && activeIndex >= 0) {
+    let responseItem = activeItem === 'success' ? SuccessResponse[activeIndex] : ErrorResponse[activeIndex];
+    if (responseItem.responseType && responseItem.responseType.indexOf('json') >= 0 && responseItem.description.indexOf('$Ref') >= 0) {
+      responseType = 'json';
+      let getRef = responseItem.description.match(/^\s*\$\s*Ref\s*:\s*\S*\s*/)[0];
+      refKey = getRef.replace(/\s/g, '').replace(/^\$Ref:\s*/g, '');
+      initjsonView();
+    } else {
+      responseType = '';
+      responseJsonEl = '';
+      jsonPreview = null;
+    }
+  }
+
   function showSuccess (index) {
     activeItem !== 'success' && (activeItem = 'success');
     index !== activeIndex && (activeIndex = index);
@@ -45,6 +69,97 @@
   function showError (index) {
     activeItem !== 'error' && (activeItem = 'error');
     index !== activeIndex && (activeIndex = index);
+  }
+
+  async function initjsonView () {
+    await tick();
+    initJsonPreview();
+  }
+
+  function initJsonPreview () {
+    if (jsonPreview && responseJsonEl) {
+      jsonPreview.setValue(setJsonValue());
+    } else {
+      jsonPreview = CodeMirror(responseJsonEl, {
+        mode: "application/json",
+        lineNumbers: true,
+        lineWrapping: true,
+        foldGutter: true,
+        gutters: ['CodeMirror-linenumbers','CodeMirror-foldgutter'],
+        styleActiveLine: true,
+        matchBrackets: true,
+        smartIndent: true,
+        readOnly: true,
+        tabSize: 2,
+        theme: 'blackboard',
+        tabindex: 2,
+        value: setJsonValue()
+      });
+    }
+  }
+
+  function setJsonValue () {
+    let modelObj = generateModel(refKey);
+    let objStr = JSON.stringify(modelObj);
+    objStr = formatJson(objStr);
+    return objStr;
+  }
+
+  function generateModel (refKey) {
+    if ($storeData[refKey] && $storeData[refKey].Property) {
+      let propertyList = $storeData[refKey].Property || [];
+      let result = {};
+      for (let item of propertyList) {
+        if (item.valueType.indexOf('$Ref') >= 0) {
+          let subRef = item.valueType.replace(/^\s*\$\s*Ref\s*:\s*/g, '');
+          if (subRef.indexOf('[') >= 0 && subRef.indexOf(']') >= 0) {
+            subRef = subRef.replace(/\[|\]|\s/g, '');
+            result[item.key] = [generateModel(subRef)]
+          } else {
+            result[item.key] = generateModel(subRef)
+          }
+        } else {
+          // result[item.key] = `${item.valueType} isRequired:${item.isRequired ? 'true' : 'false'} ${item.description}`
+          result[item.key] = `${item.valueType} ${item.description}`
+        }
+      }
+      return result
+    } else {
+      return {}
+    }
+  }
+
+  function formatJson (jsonStr) {
+    let prettyJson = '';
+    let currentIndent = 0;
+    let long = jsonStr.length;
+    let copyText = '';
+    for (let i = 0; i < long; i++) {
+      if (jsonStr[i] === '{') {
+        currentIndent += 1;
+        prettyJson += copyText + jsonStr[i] + '\n' + generateIndent(currentIndent);
+        copyText = '';
+      } else if (jsonStr[i] === '}') {
+        currentIndent -= 1;
+        prettyJson += copyText + '\n' + generateIndent(currentIndent) + jsonStr[i];
+        copyText = '';
+      } else {
+        copyText += jsonStr[i];
+        if (jsonStr[i] === ',') {
+          prettyJson += copyText + '\n' + generateIndent(currentIndent);
+          copyText = '';
+        }
+      } 
+    }
+    return prettyJson;
+  }
+
+  function generateIndent (indentNumber) {
+    let str = '';
+    for (let i = 0; i < indentNumber; i++) {
+      str = str + '  ';
+    }
+    return str;
   }
 </script>
 

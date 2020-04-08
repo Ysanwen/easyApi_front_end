@@ -57,17 +57,21 @@
   function initJsonPreview () {
     jsonPreview = CodeMirror(responseJsonEl, {
       mode: "application/json",
-      gutters: ["CodeMirror-lint-markers"],
-      lint: true,
+      // gutters: ["CodeMirror-lint-markers"],
+      // lint: true,
       lineNumbers: true,
+      lineWrapping: true,
+      foldGutter: true,
+      gutters: ['CodeMirror-linenumbers','CodeMirror-foldgutter'],
       styleActiveLine: true,
       matchBrackets: true,
       smartIndent: true,
       readOnly: true,
       tabSize: 2,
-      theme: 'blackboard',
+      theme: 'eclipse',
+      // theme: 'blackboard',
       tabindex: 2,
-      value: setJsonValue(),
+      value: setJsonValue()
     });
   }
 
@@ -152,8 +156,8 @@
     z-index: 10;
     box-shadow: 0 0.5em 1em -0.125em rgba(216, 162, 162, 0.2), 0 0 0 1px rgba(10,10,10,.02);
     color: #4a4a4a;
-    min-width:400px;
-    min-height: 300px;
+    /* min-width:400px;
+    min-height: 300px; */
     overflow: scroll;
     background-color: #fff;
   }

@@ -36,6 +36,7 @@
   let responseJsonEl;
   let jsonPreview = null;
   let refKey = '';
+  let refReplace;
 
   $: if(apiData) {
     SuccessResponse = apiData.SuccessResponse || [];
@@ -49,10 +50,11 @@
 
   $: if (activeItem && activeIndex >= 0) {
     let responseItem = activeItem === 'success' ? SuccessResponse[activeIndex] : ErrorResponse[activeIndex];
-    if (responseItem.responseType && responseItem.responseType.indexOf('json') >= 0 && responseItem.description.indexOf('$Ref') >= 0) {
+    if (responseItem.responseType && responseItem.responseType.indexOf('json') >= 0 && responseItem.valueType.indexOf('&') >= 0) {
       responseType = 'json';
-      let getRef = responseItem.description.match(/^\s*\$\s*Ref\s*:\s*\S*\s*/)[0];
-      refKey = getRef.replace(/\s/g, '').replace(/^\$Ref:\s*/g, '');
+      let getRef = responseItem.valueType.match(/^\s*\&\s*\S*\s*/)[0];
+      refKey = getRef.replace(/\s/g, '').replace(/\&\s*/g, '');
+      refReplace = responseItem.refReplace;
       initjsonView();
     } else {
       responseType = '';
@@ -99,19 +101,24 @@
   }
 
   function setJsonValue () {
-    let modelObj = generateModel(refKey);
+    let modelObj = generateModel(refKey, refReplace);
     let objStr = JSON.stringify(modelObj);
     objStr = formatJson(objStr);
     return objStr;
   }
 
-  function generateModel (refKey) {
-    if ($storeData[refKey] && $storeData[refKey].Property) {
-      let propertyList = $storeData[refKey].Property || [];
-      let result = {};
+  function generateModel (getKey, refReplaceItem) {
+    let getRefKey = getKey.replace(/\[|\]|\s/g, '');
+    let result = {};
+    if ($storeData[getRefKey] && $storeData[getRefKey].Property) {
+      let propertyList = $storeData[getRefKey].Property || [];
       for (let item of propertyList) {
-        if (item.valueType.indexOf('$Ref') >= 0) {
-          let subRef = item.valueType.replace(/^\s*\$\s*Ref\s*:\s*/g, '');
+        let subRef = item.valueType || '';
+        if (refReplaceItem && refReplaceItem[item.key]) {
+          subRef = refReplaceItem[item.key];
+        }
+        if (subRef.indexOf('&') >= 0) {
+          subRef = subRef.replace(/^\s*\&\s*/g, '');
           if (subRef.indexOf('[') >= 0 && subRef.indexOf(']') >= 0) {
             subRef = subRef.replace(/\[|\]|\s/g, '');
             result[item.key] = [generateModel(subRef)]
@@ -122,11 +129,9 @@
           // result[item.key] = `${item.valueType} isRequired:${item.isRequired ? 'true' : 'false'} ${item.description}`
           result[item.key] = `${item.valueType} ${item.description}`
         }
-      }
-      return result
-    } else {
-      return {}
+      }  
     }
+    return getKey.indexOf('[') >= 0 && getKey.indexOf(']') >= 0 ? [result] : result
   }
 
   function formatJson (jsonStr) {

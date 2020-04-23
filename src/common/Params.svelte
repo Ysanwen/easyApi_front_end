@@ -43,7 +43,7 @@
           <td rowspan={BodyParam.length}>{$lang.bodyParam}</td>
         {/if}  
         <td>{body.key}  <span class={body.isRequired === false ? 'tag is-info is-light' : 'tag is-danger is-light'}>{body.isRequired === false ? $lang.isOptional : $lang.isRequired}</span></td>
-        <ParamInfoModal valueType={body.valueType}/>
+        <ParamInfoModal valueType={body.valueType} refReplace={body.refReplace}/>
         <td>{body.description}</td>
       </tr>
     {/each}

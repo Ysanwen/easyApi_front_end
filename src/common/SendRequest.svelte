@@ -50,7 +50,7 @@
   </div> 
 {/if}
 <!-- body part -->
-{#if (method === 'post' || method === 'put') && bodyParams && bodyParams.length > 0}
+{#if (method === 'post' || method === 'put' || method === 'delete') && bodyParams && bodyParams.length > 0}
  <div class="ez-request-param">
     <h6 class="title is-6">{$lang.bodyParam} contentType: {contentType}</h6>
     <!-- json type -->
@@ -191,12 +191,13 @@
       let indentStr = generateIndent(currentIndent);
       let key = item.key;
       let valueType = item.valueType;
-      if (valueType.indexOf('$Ref') >= 0) {
+      if (valueType.indexOf('&') >= 0) {
         // deal with the ref type
-        let refKey = valueType.replace(/^\s*\$\s*Ref\s*:\s*|\[|\]|\s/g, '');
+        let refKey = valueType.replace(/^\s*\&\s*|\[|\]|\s/g, '');
         valueType = /\[.*\]/.test(valueType) ? 'array' : 'object';
+        let refReplace = item.refReplace;
         // str += valueType === 'array' ? `${indentStr}"${key}":[],\n` : `${indentStr}"${key}":{},\n`;
-        let refValue = generateRefModel(refKey, valueType, currentIndent);
+        let refValue = generateRefModel(refKey, valueType, currentIndent, refReplace);
         str += `${indentStr}"${key}":${refValue},\n`; 
       } else if (/\[.*\]/.test(valueType)) {
         valueType = 'array';
@@ -233,12 +234,24 @@
     return str;
   }
 
-  function generateRefModel (refKey, valueType, currentIndent) {
+  function generateRefModel (refKey, valueType, currentIndent, refReplace) {
     let str = '';
     let indentStr = generateIndent(currentIndent);
     if ($storeData[refKey] && $storeData[refKey].Property && $storeData[refKey].Property.length > 0) {
       let props = $storeData[refKey].Property;
       str += valueType === 'array' ? `[{\n` : `{\n`;
+      let newProps = [];
+      for (let item of props) {
+        if (refReplace && refReplace[item.key]) {
+          let newType =  /\[.*\]/.test(refReplace[item.key]) ? 'array' : 'object';
+          let getRefKey = refReplace[item.key].replace(/^\s*\&\s*|\[|\]|\s/g, '');
+          let refValue = generateRefModel(getRefKey, newType, currentIndent + 1, refReplace);
+          str += `${indentStr}"${item.key}":${refValue},\n`; 
+        } else {
+          newProps.push(item);
+        }
+      }
+      props = newProps;
       str += parseParams(props, currentIndent + 1);
       str = str.replace(/,\n$/, '\n');
       str += valueType === 'array' ? `${indentStr}}]` : `${indentStr}}`;
@@ -363,7 +376,7 @@
     // 'string[]', 'number[]', 'integer[]', 'float[]', 'boolean[]', 'array[]', 'object[]', 'null[]', 'date[]', 'datetime[]'
     if (valueType.indexOf('[') >= 0 && valueType.indexOf(']') >= 0) {
       return 'array';
-    } else if (valueType.indexOf('$Ref') >= 0) {
+    } else if (valueType.indexOf('&') >= 0) {
       return 'object';
     } else if (valueType.indexOf('number') >= 0 || valueType.indexOf('integer') >= 0 || valueType.indexOf('float') >= 0) {
       return 'number';
@@ -391,7 +404,7 @@
       errorMessage = `${$lang.queryParam} ${checkRequestQuery.message}`;
       return false;
     }
-    if (method === 'post' || method === 'put') {
+    if (method === 'post' || method === 'put' || method === 'delete') {
       let checkBody = checkRequestBody();
       if (checkBody) {
         let bodyData = generateFetchBodyData();

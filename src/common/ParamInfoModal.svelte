@@ -2,7 +2,7 @@
   <td>{refKey}
     <div class="modal-info">
       <span class="tag is-primary" on:mouseenter={showParamInfo} on:click={showParamInfo}>?</span>
-      <div class={isActive ? "show-card modal-card" : "hide-card modal-card"}>
+      <div class={isActive && modelInfo.Model ? "show-card modal-card" : "hide-card modal-card"}>
         <div class="close-top">
           <span class="modal-title">{modelInfo.Model.description || 'self define type'}</span>
           <span class="tag is-delete" on:click={closeModal}></span>
@@ -20,6 +20,7 @@
   import { storeData, lang } from '../store.js';
 
   export let valueType;
+  export let refReplace;
 
   let isActive = false;
   let showRef = false;
@@ -29,9 +30,10 @@
   let jsonPreview = null;
 
   $: if (valueType) {
-    if (valueType.indexOf('$Ref:') >= 0) {
-      refKey = valueType.replace(/^\s*\$\s*Ref\s*:\s*/g, '');
-      modelInfo = $storeData[refKey];
+    if (valueType.indexOf('&') >= 0) {
+      refKey = valueType.replace(/^\s*\&\s*/g, '');
+      let getKey = refKey.replace(/\[|\]|\s/g, '');
+      modelInfo = $storeData[getKey] || {};
       showRef = true;
     } else {
       refKey = valueType
@@ -76,19 +78,24 @@
   }
 
   function setJsonValue () {
-    let modelObj = generateModel(refKey);
+    let getKey = refKey.replace(/\[|\]|\s/g, '');
+    let modelObj = generateModel(getKey, refReplace);
     let objStr = JSON.stringify(modelObj);
     objStr = formatJson(objStr);
     return objStr;
   }
 
-  function generateModel (refKey) {
-    if ($storeData[refKey] && $storeData[refKey].Property) {
-      let propertyList = $storeData[refKey].Property || [];
+  function generateModel (getKey, refReplaceItem) {
+    if ($storeData[getKey] && $storeData[getKey].Property) {
+      let propertyList = $storeData[getKey].Property || [];
       let result = {};
       for (let item of propertyList) {
-        if (item.valueType.indexOf('$Ref') >= 0) {
-          let subRef = item.valueType.replace(/^\s*\$\s*Ref\s*:\s*/g, '');
+        let subRef = item.valueType || '';
+        if (refReplaceItem && refReplaceItem[item.key]) {
+          subRef = refReplaceItem[item.key];
+        }
+        if (subRef.indexOf('&') >= 0) {
+          subRef = subRef.replace(/^\s*\&\s*/g, '');
           if (subRef.indexOf('[') >= 0 && subRef.indexOf(']') >= 0) {
             subRef = subRef.replace(/\[|\]|\s/g, '');
             result[item.key] = [generateModel(subRef)]
@@ -99,7 +106,7 @@
           // result[item.key] = `${item.valueType} isRequired:${item.isRequired ? 'true' : 'false'} ${item.description}`
           result[item.key] = `${item.valueType} ${item.description}`
         }
-      }
+      }  
       return result
     } else {
       return {}

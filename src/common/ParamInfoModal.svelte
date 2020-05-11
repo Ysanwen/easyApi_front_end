@@ -1,7 +1,7 @@
 {#if showRef}
   <td>{refKey}
     <div class="modal-info">
-      <span class="tag is-primary" on:mouseenter={showParamInfo} on:click={showParamInfo}>?</span>
+      <span class="tag is-primary" on:click={showParamInfo}>?</span>
       <div class={isActive && modelInfo.Model ? "show-card modal-card" : "hide-card modal-card"}>
         <div class="close-top">
           <span class="modal-title">{modelInfo.Model.description || 'self define type'}</span>
@@ -135,6 +135,7 @@
         }
       } 
     }
+    copyText && (prettyJson += copyText);
     return prettyJson;
   }
 

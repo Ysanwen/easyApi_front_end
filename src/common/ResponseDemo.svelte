@@ -156,6 +156,7 @@
         }
       } 
     }
+    copyText && (prettyJson += copyText);
     return prettyJson;
   }
 

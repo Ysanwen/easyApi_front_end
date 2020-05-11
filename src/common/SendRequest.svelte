@@ -50,7 +50,7 @@
   </div> 
 {/if}
 <!-- body part -->
-{#if (method === 'post' || method === 'put' || method === 'delete') && bodyParams && bodyParams.length > 0}
+{#if (method === 'post' || method === 'put' || method === 'patch') && bodyParams && bodyParams.length > 0}
  <div class="ez-request-param">
     <h6 class="title is-6">{$lang.bodyParam} contentType: {contentType}</h6>
     <!-- json type -->
@@ -144,7 +144,7 @@
   }
 
   onMount (() => {
-    if ((method === 'post' || method === 'put') && contentType === 'application/json') {
+    if ((method === 'post' || method === 'put' || method === 'patch') && contentType === 'application/json') {
       initJsonEditor();
     }
   })
@@ -238,14 +238,15 @@
     let str = '';
     let indentStr = generateIndent(currentIndent);
     if ($storeData[refKey] && $storeData[refKey].Property && $storeData[refKey].Property.length > 0) {
-      let props = $storeData[refKey].Property;
+      let props = $storeData[refKey].Property || [];
       str += valueType === 'array' ? `[{\n` : `{\n`;
       let newProps = [];
       for (let item of props) {
         if (refReplace && refReplace[item.key]) {
           let newType =  /\[.*\]/.test(refReplace[item.key]) ? 'array' : 'object';
           let getRefKey = refReplace[item.key].replace(/^\s*\&\s*|\[|\]|\s/g, '');
-          let refValue = generateRefModel(getRefKey, newType, currentIndent + 1, refReplace);
+          let newrefReplace = item.refReplace;
+          let refValue = generateRefModel(getRefKey, newType, currentIndent + 1, newrefReplace);
           str += `${indentStr}"${item.key}":${refValue},\n`; 
         } else {
           newProps.push(item);
@@ -404,7 +405,7 @@
       errorMessage = `${$lang.queryParam} ${checkRequestQuery.message}`;
       return false;
     }
-    if (method === 'post' || method === 'put' || method === 'delete') {
+    if (method === 'post' || method === 'put' || method === 'patch') {
       let checkBody = checkRequestBody();
       if (checkBody) {
         let bodyData = generateFetchBodyData();
@@ -449,7 +450,8 @@
     // "omit" - don't include authentication credentials (e.g. cookies) in the request
     // "same-origin" - include credentials in requests to the same site
     // "include" - include credentials in requests to all sites
-    let request = {credentials: 'same-origin'}; // 
+    // let request = {credentials: 'same-origin'};
+    let request = {credentials: 'same-origin'}; 
     let url = apiData.Api.path;
     let method = apiData.Api.method.toLocaleUpperCase();
     request.method = method;
@@ -472,7 +474,7 @@
       queryArr.push(encodedStr);
     }
     if (queryArr.length > 0) {
-      url += '?' + queryArr.join('&');
+      url += `${url.indexOf('?') >=0 ? '&' : '?'}${encodeURI(queryArr.join('&'))}`
     }
     // if has a request body
     if (bodyData) {

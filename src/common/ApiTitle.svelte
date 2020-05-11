@@ -40,6 +40,8 @@
     <span class="tag is-info is-medium">{method}</span>
   {:else if method === 'put'}
     <span class="tag is-warning is-medium">{method}</span>
+  {:else if method === 'patch'}
+    <span class="tag is-warning is-medium">{method}</span>
   {:else}
     <span class="tag is-danger is-medium">{method}</span>
   {/if}

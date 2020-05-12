@@ -15,7 +15,7 @@
   </div>
   {#if responseType === 'json'}
     <!-- json type -->
-    <div bind:this={responseJsonEl}></div>
+    <div class="ez-response-json" bind:this={responseJsonEl}></div>
   {:else}
     <pre class="ez-response-sample">
       {@html activeItem === 'success' ? SuccessResponse[activeIndex].description : ErrorResponse[activeIndex].description}
@@ -50,7 +50,7 @@
 
   $: if (activeItem && activeIndex >= 0) {
     let responseItem = activeItem === 'success' ? SuccessResponse[activeIndex] : ErrorResponse[activeIndex];
-    if (responseItem.responseType && responseItem.responseType.indexOf('json') >= 0 && responseItem.valueType.indexOf('&') >= 0) {
+    if (responseItem.responseType && responseItem.responseType.indexOf('json') >= 0 &&  responseItem.valueType && responseItem.valueType.indexOf('&') >= 0) {
       responseType = 'json';
       let getRef = responseItem.valueType.match(/^\s*\&\s*\S*\s*/)[0];
       refKey = getRef.replace(/\s/g, '').replace(/\&\s*/g, '');
@@ -173,6 +173,9 @@
   .ez-response-sample {
     background:hsl(0, 0%, 21%);
     color:hsl(0, 0%, 96%);
+    margin-bottom: 1rem;
+  }
+  .ez-response-json {
     margin-bottom: 1rem;
   }
 </style>

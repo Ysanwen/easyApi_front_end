@@ -116,7 +116,7 @@
 
 <style>
   .ez-api-title {
-    margin-top: 1rem;
+    margin-top: 2rem;
     margin-bottom: 0.6rem;
   }
   .level-left {

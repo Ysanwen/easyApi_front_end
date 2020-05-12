@@ -8,7 +8,7 @@
 
 <style>
   .ez-group {
-    margin-top: 6px;
+    margin-top: 2rem;
     margin-bottom: 6px;
   }
 </style>
